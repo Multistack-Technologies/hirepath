@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "resumes",
     "matching",
     "skills",
+    "applications"
 ]
 
 MIDDLEWARE = [
