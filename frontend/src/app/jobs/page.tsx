@@ -37,7 +37,7 @@ export default function MyJobs() {
 
     try {
       
-      const response = await api.get('/jobs/');
+      const response = await api.get('/jobs/me');
 
       if (response.data && Array.isArray(response.data)) {
         setJobs(response.data);
@@ -86,7 +86,7 @@ export default function MyJobs() {
   };
 
   const handleViewApplications = (jobId: number) => {
-    router.push(`/jobs/${jobId}/applications`);
+    router.push(`/jobs/${jobId}`);
   };
 
   return (

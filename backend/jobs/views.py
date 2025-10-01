@@ -24,6 +24,38 @@ class JobListCreateView(generics.ListCreateAPIView):
         serializer.save(created_by=user, company=user.company)
 
 
+class MyJobListView(generics.ListAPIView):
+
+    serializer_class = JobSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+      
+        user = self.request.user
+        # Filter jobs where created_by is the current user
+        return Job.objects.filter(created_by=user).order_by("-created_at")
+
+
+class JobDetailView(generics.RetrieveAPIView):
+  
+    serializer_class = JobSerializer
+    permission_classes = [permissions.IsAuthenticated] # Require auth to view details
+
+    def get_queryset(self):
+ 
+        user = self.request.user
+        # Return jobs created by the current user
+        return Job.objects.filter(created_by=user)
+
+    def get_object(self):
+  
+        queryset = self.get_queryset()
+        obj = get_object_or_404(queryset, pk=self.kwargs['pk']) # Use pk from URL
+        # DRF's default permission checks (e.g., IsAuthenticated) happen after get_object
+        # The queryset filtering above already restricts to jobs the user created
+        return obj
+
+
 @api_view(["GET"])
 @permission_classes([permissions.AllowAny])
 def ping(request):

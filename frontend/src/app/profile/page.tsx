@@ -1,4 +1,3 @@
-
 'use client'; 
 
 import { useAuth } from '@/context/AuthContext'; 
@@ -8,31 +7,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/Button'; 
 import Link from 'next/link'; 
 import  api  from '@/lib/api'; 
-
-interface UserProfile {
-  id: number;
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  role: 'graduate' | 'recruiter';
-  phone: string;
-  bio?: string; 
-  avatarUrl?: string; 
-}
-
-interface CompanyProfile {
-  id: number;
-  name: string;
-  industry: string;
-  website: string;
-  description: string;
-  contact_person: string;
-  contact_email: string;
-  contact_phone: string;
-  logoUrl?: string; 
-
-}
+import { UserProfile, CompanyProfile } from '@/types'; 
 
 export default function MyProfile() {
   const { user } = useAuth(); 
@@ -83,7 +58,6 @@ export default function MyProfile() {
   const handleEditProfile = () => {
     router.push('/profile/edit');
   };
-
 
   const handleCreateCompanyProfile = () => {
     router.push('/profile/company/create');
@@ -189,27 +163,13 @@ export default function MyProfile() {
                   />
                   <div>
                     <h3 className="font-bold text-gray-900">{companyProfile.name}</h3>
-                    <p className="text-sm text-gray-700">{companyProfile.industry}</p>
                     <p className="text-xs text-gray-500 mt-1">{companyProfile.website}</p>
                   </div>
                 </div>
                 <div className="mb-4">
                   <p className="text-sm text-gray-700">{companyProfile.description}</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-gray-500">Contact Person</p>
-                    <p className="text-sm text-gray-900">{companyProfile.contact_person}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-500">Contact Email</p>
-                    <p className="text-sm text-gray-900">{companyProfile.contact_email}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-500">Contact Phone</p>
-                    <p className="text-sm text-gray-900">{companyProfile.contact_phone}</p>
-                  </div>
-                </div>
+ 
               </>
             ) : (
               <p className="text-sm text-gray-700">No Company Profile</p>

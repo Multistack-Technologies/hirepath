@@ -1,23 +1,25 @@
-// src/app/components/DashboardLayout.tsx
-'use client'; // Mark as Client Component
+'use client';
 
-import { useAuth } from '@/context/AuthContext'; // To get user info and logout
-import { useRouter, usePathname } from 'next/navigation'; // For navigation on logout and getting current path
-import Sidebar from '@/components/Sidebar'; // Your existing reusable Sidebar
-import { ReactNode } from 'react'; // Import ReactNode for children type
+import { useAuth } from '@/context/AuthContext'; 
+import { useRouter } from 'next/navigation'; 
+import Sidebar from '@/components/Sidebar'; 
+import { ReactNode, useEffect, useState } from 'react'; 
+import  api  from '@/lib/api'; 
+import { UserProfile, CompanyProfile } from '@/types'; 
+import { useLayout } from '@/context/LayoutContext';
 
-// Define the props for the layout component
+
 interface DashboardLayoutProps {
-  children: ReactNode; // The content of the specific page
-  pageTitle: string; // Title for the current page (e.g., "Dashboard", "My Profile")
+  children: ReactNode; 
+  pageTitle: string; 
 }
 
 export default function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
-  const { user, logout } = useAuth(); // Get user info and logout function
-  const router = useRouter(); // Get router for navigation
-  const pathname = usePathname(); // Get the current path
+  const { user, logout } = useAuth(); 
+  const { profile, isProfileLoading, profileError, company, isCompanyLoading, companyError } = useLayout();
+  const router = useRouter(); 
 
-  // Define sidebar items within the component
+
   const sidebarItems = [
     {
       href: '/dashboard',
@@ -59,40 +61,63 @@ export default function DashboardLayout({ children, pageTitle }: DashboardLayout
   ];
 
   const handleLogout = () => {
-    logout(); // Call logout from context
-    router.push('/'); // Redirect to home or login page after logout
+    logout();
+    router.push('/');
   };
 
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
   if (!user) {
-    // Optionally render a loading state or redirect message
-    return <p>Loading...</p>;
+    return <p>Loading...</p>; 
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+          <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar
         logoText="Hire-Path"
         items={sidebarItems}
-        activeHref={pathname} // Pass the current path to the Sidebar
+        activeHref={typeof window !== 'undefined' ? window.location.pathname : '/dashboard'}
         className="z-10"
       />
 
       {/* Main Content Area */}
-      <main className="ml-64 flex-1 flex flex-col"> {/* Flex column to stack TopBar and page content */}
+      <main className="ml-64 flex-1 flex flex-col">
         {/* Top Bar */}
         <header className="bg-white shadow-sm p-4 flex justify-between items-center border-b">
-          <h1 className="text-xl font-semibold text-[#7551FF]">{pageTitle}</h1> {/* Use the passed title */}
+          <h1 className="text-xl font-semibold text-gray-800">{pageTitle}</h1>
           <div className="flex items-center space-x-4">
+            {/* User Profile Info */}
             <div className="flex items-center bg-gray-100 rounded-full p-2">
+              {/* Display User Avatar or Placeholder */}
               <img
-                src={user.avatarUrl || "https://via.placeholder.com/40"} // Use user's avatar or placeholder
+                src={profile?.avatarUrl || "https://via.placeholder.com/40"}
                 alt="User Avatar"
                 className="w-8 h-8 rounded-full mr-2"
               />
               <div>
-                <p className="text-sm font-medium text-gray-900">{user.email}</p>
-                <p className="text-xs text-gray-500">{user.role}</p>
+                {/* Display User Name or Email */}
+                {isProfileLoading ? (
+                  <p className="text-sm font-medium text-gray-900">Loading...</p>
+                ) : profileError ? (
+                  <p className="text-sm font-medium text-red-600">Error loading profile</p>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-gray-900">
+                      {profile ? `${profile.first_name} ${profile.last_name}` : user.email}
+                    </p>
+                    {/* Display Role and potentially Company Name */}
+                    <p className="text-xs text-gray-500">
+                      {user.role === 'RECRUITER' && company ?
+                        `${user.role} at ${company.name}` :
+                        user.role}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
             <button
@@ -104,8 +129,14 @@ export default function DashboardLayout({ children, pageTitle }: DashboardLayout
           </div>
         </header>
 
-        {/* Page Content (Passed as children) */}
-        <div className="flex-1 p-8"> {/* Flex-1 allows content to take remaining space */}
+        {/* Page Content */}
+        <div className="flex-1 p-8">
+          {/* Optionally display global errors if context fetch failed */}
+          {(profileError || companyError) && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <p>{profileError || companyError}</p>
+            </div>
+          )}
           {children}
         </div>
       </main>
