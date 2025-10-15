@@ -52,7 +52,7 @@ export default function JobDetails() {
 
       // Fetch candidates (applications) for this specific job
       // Adjust endpoint and data structure based on your Django API
-      const applicationsResponse = await api.get<{ results: any[] }>(`/jobs/${jobId}/applications/`);
+      const applicationsResponse = await api.get<{ results: any[] }>(`/applications/job/${jobId}/`);
 
       if (applicationsResponse.data && Array.isArray(applicationsResponse.data.results)) {
         // Extract candidate info from the applications
@@ -174,12 +174,10 @@ export default function JobDetails() {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <h2 className="text-xl font-semibold text-purple-700 mb-4">Requirements</h2>
               <div className="flex flex-wrap gap-2">
-                {job?.requirementIds && job.requirementIds.length > 0 ? (
-                  job.requirementIds.map((reqId) => (
-                    <span key={reqId} className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-sm">
-                      {/* You'll need a helper function or context to get skill name from ID */}
-                      {/* For now, just display the ID or a placeholder */}
-                      Skill ID: {reqId} {/* Replace with getSkillName(reqId) */}
+                {job?.skills_required && job.skills_required.length > 0 ? (
+                  job.skills_required.map((skill) => (
+                    <span key={skill.id} className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-sm">
+                     {skill.name}
                     </span>
                   ))
                 ) : (

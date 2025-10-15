@@ -33,6 +33,7 @@ export interface Job {
   location: string;
   description: string;
   requirementIds: number[]; 
+  skills_required : Skill[];
 }
 
 export interface ResumeFeedback {

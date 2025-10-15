@@ -1,95 +1,4 @@
-// "use client";
-// import { useState } from "react";
-// import { useRouter } from "next/navigation";
-// import api from "@/utils/api"; // ✅ use shared API
 
-// export default function LoginPage() {
-//   const router = useRouter();
-//   const [formData, setFormData] = useState({
-//     email: "",
-//     password: "",
-//   });
-//   const [error, setError] = useState("");
-
-//   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setError("");
-
-//     try {
-//       const res = await api.post("/accounts/login/", {
-//         email: formData.email,
-//         password: formData.password,
-//       });
-
-//       // Save tokens
-//       localStorage.setItem("access", res.data.access);
-//       localStorage.setItem("refresh", res.data.refresh);
-
-//       router.push("/dashboard");
-//     } catch (err) {
-//       setError("Invalid email or password");
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen flex">
-//       {/* Left side */}
-//       <div className="w-1/2 bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center text-white">
-//         <h1 className="text-4xl font-bold">Welcome Back</h1>
-//       </div>
-
-//       {/* Right side */}
-//       <div className="w-1/2 flex items-center justify-center bg-gray-50">
-//         <div className="w-full max-w-md p-8 bg-white shadow-lg rounded-lg">
-//           <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-//           {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-
-//           <form onSubmit={handleSubmit} className="space-y-4">
-//             <div>
-//               <label className="block text-sm font-medium">Email</label>
-//               <input
-//                 type="email"
-//                 name="email"
-//                 value={formData.email}
-//                 onChange={handleChange}
-//                 className="w-full p-2 border rounded-lg"
-//                 required
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium">Password</label>
-//               <input
-//                 type="password"
-//                 name="password"
-//                 value={formData.password}
-//                 onChange={handleChange}
-//                 className="w-full p-2 border rounded-lg"
-//                 required
-//               />
-//             </div>
-//             <button
-//               type="submit"
-//               className="w-full bg-purple-700 hover:bg-purple-800 text-white p-2 rounded-lg"
-//             >
-//               Sign In
-//             </button>
-//           </form>
-
-//           <p className="text-sm text-center mt-4">
-//             Don’t have an account?{" "}
-//             <a href="/register" className="text-purple-700 font-medium">
-//               Register
-//             </a>
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 // src/app/login/page.tsx
 // 'use client'; // Mark this as a Client Component
 
@@ -175,7 +84,7 @@
 // }
 
 
-// src/app/login/page.tsx
+
 'use client'; // Mark this as a Client Component
 
 import { useState } from 'react';
@@ -212,25 +121,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-white">
       {/* Left Side - Decorative Background */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 relative overflow-hidden rounded-tr-4xl rounded-br-4xl">
         {/* Add subtle wave or abstract shapes if desired */}
-        <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 opacity-30 ">
           {/* You can add SVG paths or divs here for more complex backgrounds */}
         </div>
       </div>
 
       {/* Right Side - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-md space-y-6">
-          <h1 className="text-2xl font-bold text-gray-800 text-center">Welcome Back</h1>
-          <p className="text-sm text-gray-500 text-center mb-6">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-          </p>
-
+        <div className="w-full max-w-md space-y-6 p-8 bg-white shadow-lg rounded-lg">
+          <div>
+              <h1 className="text-3xl font-black text-center  text-[#7551FF]">HIRE<span className="text-[#130160]" >-PATH</span></h1>
+              <h1 className="text-xl font-medium text-gray-400 text-center">Login</h1>
+          </div>
           {error && <p className="text-red-600 text-center">{error}</p>}
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField
               id="email"
@@ -240,7 +147,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@example.com"
-              className="bg-gray-50 border-gray-200 focus:border-indigo-500"
+              className=" border-gray-200 focus:border-indigo-500"
             />
 
             <div className="relative">
@@ -252,7 +159,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="bg-gray-50 border-gray-200 focus:border-indigo-500 pr-10" // Add padding for eye icon
+                className="border-gray-200 focus:border-indigo-500 pr-10" // Add padding for eye icon
               />
               {/* Eye Icon Toggle */}
               <button
@@ -287,7 +194,7 @@ export default function LoginPage() {
                   Remember me
                 </label>
               </div>
-              <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500">
+              <a href="/reset" className="text-sm text-indigo-600 hover:text-indigo-500">
                 Forgot Password?
               </a>
             </div>
@@ -297,7 +204,7 @@ export default function LoginPage() {
               variant="primary"
               size="md"
               isLoading={isLoading}
-              className="w-full mt-4 bg-indigo-700 hover:bg-indigo-800 text-white"
+              className="w-full mt-4 "
             >
               {isLoading ? 'Logging In...' : 'LOGIN'}
             </Button>

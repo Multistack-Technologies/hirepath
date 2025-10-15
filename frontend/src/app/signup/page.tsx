@@ -12,7 +12,7 @@ export default function SignupPage() {
   const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'graduate' | 'recruiter'>('graduate'); // State for role selection
+  const [role, setRole] = useState<'GRADUATE' | 'RECRUITER'>('GRADUATE'); // State for role selection
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // State for password visibility
@@ -26,8 +26,8 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      await signup(email, password, role, ''); // Pass phone as empty string for now, or add a phone field
-      // Signup automatically logs the user in, so redirect to dashboard
+      await signup(email, password, role, fullname,surname);
+    
       router.push('/dashboard');
     } catch (err: any) {
       console.error('Signup error:', err);
@@ -39,9 +39,9 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-white">
       {/* Left Side - Decorative Background */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 relative overflow-hidden rounded-tr-4xl rounded-br-4xl">
         {/* Add subtle wave or abstract shapes if desired */}
         <div className="absolute inset-0 opacity-30">
           {/* You can add SVG paths or divs here for more complex backgrounds */}
@@ -50,11 +50,12 @@ export default function SignupPage() {
 
       {/* Right Side - Signup Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-md space-y-6">
-          <h1 className="text-2xl font-bold text-gray-800 text-center">Register</h1>
-          <p className="text-sm text-gray-500 text-center mb-6">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-          </p>
+        <div className="w-full max-w-md space-y-6 p-8 bg-white shadow-lg rounded-lg">
+          
+          <div>
+              <h1 className="text-3xl font-black text-center  text-[#7551FF]">HIRE<span className="text-[#130160]" >-PATH</span></h1>
+              <h1 className="text-xl font-medium text-gray-400 text-center">Create Account</h1>
+          </div>
 
           {error && <p className="text-red-600 text-center">{error}</p>}
 
@@ -68,7 +69,7 @@ export default function SignupPage() {
                 onChange={(e) => setFullname(e.target.value)}
                 required
                 placeholder="John"
-                className="bg-gray-50 border-gray-200 focus:border-indigo-500"
+                className="border-gray-200 focus:border-indigo-500"
               />
               <TextField
                 id="surname"
@@ -78,7 +79,7 @@ export default function SignupPage() {
                 onChange={(e) => setSurname(e.target.value)}
                 required
                 placeholder="Doe"
-                className="bg-gray-50 border-gray-200 focus:border-indigo-500"
+                className="border-gray-200 focus:border-indigo-500"
               />
             </div>
 
@@ -90,7 +91,7 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@example.com"
-              className="bg-gray-50 border-gray-200 focus:border-indigo-500"
+              className="border-gray-200 focus:border-indigo-500"
             />
 
             <div className="relative">
@@ -102,7 +103,7 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="bg-gray-50 border-gray-200 focus:border-indigo-500 pr-10"
+                className=" border-gray-200 focus:border-indigo-500 pr-10"
               />
               {/* Eye Icon Toggle */}
               <button
@@ -127,14 +128,14 @@ export default function SignupPage() {
 
             <div className="flex items-center">
               <input
-                id="recruiter"
-                name="recruiter"
+                id="RECRUITER"
+                name="RECRUITER"
                 type="checkbox"
-                checked={role === 'recruiter'} // Bind checkbox state to role
-                onChange={(e) => setRole(e.target.checked ? 'recruiter' : 'graduate')} // Update role on change
+                checked={role === 'RECRUITER'} // Bind checkbox state to role
+                onChange={(e) => setRole(e.target.checked ? 'RECRUITER' : 'GRADUATE')} // Update role on change
                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
-              <label htmlFor="recruiter" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="RECRUITER" className="ml-2 block text-sm text-gray-900">
                 Recruiter
               </label>
             </div>
@@ -144,7 +145,7 @@ export default function SignupPage() {
               variant="primary"
               size="md"
               isLoading={isLoading}
-              className="w-full mt-4 bg-indigo-700 hover:bg-indigo-800 text-white"
+              className="w-full mt-4"
             >
               {isLoading ? 'Signing Up...' : 'REGISTER'}
             </Button>

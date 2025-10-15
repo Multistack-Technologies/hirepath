@@ -7,6 +7,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import  api  from '@/lib/api'; 
 import { UserProfile, CompanyProfile } from '@/types'; 
 import { useLayout } from '@/context/LayoutContext';
+import { HomeIcon,BriefcaseIcon,UserIcon ,CircleStackIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 
 interface DashboardLayoutProps {
@@ -20,44 +21,54 @@ export default function DashboardLayout({ children, pageTitle }: DashboardLayout
   const router = useRouter(); 
 
 
+
   const sidebarItems = [
     {
       href: '/dashboard',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 001 1h3m-6 0a1 1 0 001-1v-4a1 1 0 00-1-1h-2a1 1 0 00-1 1v4a1 1 0 001 1h2a1 1 0 001-1v-4z" />
-        </svg>
-      ),
+      icon:  <HomeIcon className="h-5 w-5" />,
       label: 'Home',
     },
     {
       href: '/jobs',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 002-2H9M9 5H7M7 5a2 2 0 002 2v6a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2z" />
-        </svg>
-      ),
+      icon:<BriefcaseIcon className="h-5 w-5" />,
       label: 'My Jobs',
     },
     {
       href: '/profile',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14a4 4 0 214 4 0 014 4v2a4 4 0 214 4 0 01-4 4h-4a4 4 0 214 4 0 01-4-4v-2a4 4 0 214 4 0 014-4h4z" />
-        </svg>
-      ),
+      icon: <UserIcon className='h-5 w-5'/>
+      ,
       label: 'My Profile',
     },
     {
       href: '/reports',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 002-2H9M9 5H7M7 5a2 2 0 002 2v6a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2z" />
-        </svg>
-      ),
+      icon: <CircleStackIcon className="h-5 w-5" />,
       label: 'Reports',
     },
+  ];
+
+   const graduateItems = [
+    {
+      href: '/dashboard',
+      icon:  <HomeIcon className="h-5 w-5" />,
+      label: 'Home',
+    },
+    {
+      href: '/Myjobs',
+      icon: <MagnifyingGlassIcon className="h-5 w-5" />,
+      label: 'Find Job',
+    },
+    {
+      href: '/applications',
+      icon:<BriefcaseIcon className="h-5 w-5" />,
+      label: 'My Jobs',
+    },
+    {
+      href: '/profile',
+      icon: <UserIcon className='h-5 w-5'/>
+      ,
+      label: 'My Profile',
+    },
+
   ];
 
   const handleLogout = () => {
@@ -80,15 +91,16 @@ export default function DashboardLayout({ children, pageTitle }: DashboardLayout
       {/* Sidebar */}
       <Sidebar
         logoText="Hire-Path"
-        items={sidebarItems}
+        items={ user.role == "RECRUITER" ? sidebarItems : graduateItems}
         activeHref={typeof window !== 'undefined' ? window.location.pathname : '/dashboard'}
         className="z-10"
       />
 
+
       {/* Main Content Area */}
-      <main className="ml-64 flex-1 flex flex-col">
+      <main className="ml-64 flex-1 flex flex-col h-screen">
         {/* Top Bar */}
-        <header className="bg-white shadow-sm p-4 flex justify-between items-center border-b">
+        <header className="bg-white  shadow-sm p-4 flex justify-between items-center border-b">
           <h1 className="text-xl font-semibold text-gray-800">{pageTitle}</h1>
           <div className="flex items-center space-x-4">
             {/* User Profile Info */}
@@ -130,7 +142,7 @@ export default function DashboardLayout({ children, pageTitle }: DashboardLayout
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-8  overflow-auto scroll-auto ">
           {/* Optionally display global errors if context fetch failed */}
           {(profileError || companyError) && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -139,6 +151,9 @@ export default function DashboardLayout({ children, pageTitle }: DashboardLayout
           )}
           {children}
         </div>
+        <footer className=' border-t border-gray-200 p-3'>
+          <p className='text-center text-blue-950 text-sm'>Hire-Path @2025 CopyRight Reserved</p>
+        </footer>
       </main>
     </div>
   );
