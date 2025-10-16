@@ -5,12 +5,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/accounts/", include("accounts.urls")),
-    path("api/jobs/", include("jobs.urls")),
-    path("api/resumes/", include("resumes.urls")),
-    path("api/matching/", include("matching.urls")),
-    path("api/companies/", include("companies.urls")),
-    path("api/skills/", include("skills.urls")),
-    path("api/applications/", include("applications.urls")),
+    path("accounts/", include("accounts.urls")),
+    path("jobs/", include("jobs.urls")),
+    path("resumes/", include("resumes.urls")),
+    path("matching/", include("matching.urls")),
+    path("companies/", include("companies.urls")),
+    path("skills/", include("skills.urls")),
+    path("applications/", include("applications.urls")),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
