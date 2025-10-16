@@ -1,4 +1,3 @@
-// src/app/profile/page.tsx
 'use client'; // Mark as Client Component for interactivity
 
 import { useAuth } from '@/context/AuthContext';
@@ -10,7 +9,9 @@ import Link from 'next/link';
 import  api  from '@/lib/api';
 import { UserProfile, CompanyProfile } from '@/types';
 // Import the ResumeUploadModal component
-import ResumeUploadModal from '@/components/ResumeUploadModal'; // Adjust path if needed
+import ResumeUploadModal from '@/components/ResumeUploadModal'; 
+import Image from 'next/image';
+
 
 export default function MyProfile() {
   const { user } = useAuth();
@@ -132,7 +133,9 @@ export default function MyProfile() {
                   <h2 className="text-xl font-semibold text-purple-700">Personal Info</h2>
                 </div>
                 <div className="flex items-start mb-4">
-                  <img
+                  <Image
+                  height={40}
+                  width={40}
                     src={profile?.avatarUrl || "https://via.placeholder.com/40"}
                     alt={profile?.first_name || "User"}
                     className="w-16 h-16 rounded-full mr-4"
@@ -241,7 +244,7 @@ export default function MyProfile() {
                   {companyProfile ? (
                     <>
                       <div className="flex items-start mb-4">
-                        <img
+                        <Image
                           src={companyProfile.logoUrl || "https://via.placeholder.com/40"}
                           alt={companyProfile.name}
                           className="w-10 h-10 rounded-full mr-4"

@@ -10,6 +10,7 @@ import api from "@/lib/api";
 import { Job } from "@/types";
 import GroupText from "@/components/GroupText";
 import ApplyPopupModal from "@/components/ApplyPopupModal";
+import Image from "next/image";
 
 export default function FindWork() {
   const { user } = useAuth();
@@ -263,7 +264,11 @@ export default function FindWork() {
                 <div className="bg-white p-6 rounded-lg shadow-sm">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center">
-                      <img
+                      <Image
+                      height={40}
+                      width ={40}
+                      src={""}
+                      alt=""
                         //   src={selectedJob.company_logo_url || "https://via.placeholder.com/40"}
                         //   alt={selectedJob.company_name}
                         className="w-12 h-12 rounded-full mr-3"

@@ -5,11 +5,12 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/Button';
-import Link from 'next/link'; // Import Link for navigation
+import Link from 'next/link'; 
 import  api  from '@/lib/api';
-import { Job } from '@/types'; // Assuming you have this interface defined
+import { Job } from '@/types'; 
+import Image from 'next/image';
 
-// Define the shape of an Application/Candidate object based on your Django model
+
 interface Candidate {
   id: number;
   first_name: string;
@@ -50,8 +51,7 @@ export default function JobDetails() {
         setError("Failed to load job details: Unexpected response format.");
       }
 
-      // Fetch candidates (applications) for this specific job
-      // Adjust endpoint and data structure based on your Django API
+
       const applicationsResponse = await api.get<{ results: any[] }>(`/applications/job/${jobId}/`);
 
       if (applicationsResponse.data && Array.isArray(applicationsResponse.data.results)) {
@@ -202,8 +202,9 @@ export default function JobDetails() {
               {candidates.map((candidate) => (
                 <div key={candidate.id} className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition">
                   <div className="flex items-start">
-                    <img
-                      src={candidate.avatarUrl}
+                    <Image height={40} width={40}
+                     // src={candidate.avatarUrl}
+                     src={""}
                       alt={`${candidate.first_name} ${candidate.last_name}`}
                       className="w-10 h-10 rounded-full mr-4"
                     />

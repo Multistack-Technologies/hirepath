@@ -1,15 +1,15 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { useRouter, useParams, useSearchParams } from 'next/navigation'; // Import useSearchParams
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/Button';
 import Link from 'next/link';
 import  api  from '@/lib/api';
-import { UserProfile } from '@/types'; // Assuming you have this interface defined
+import { UserProfile } from '@/types';
+import Image from 'next/image';
 
-// Define the shape of a Job Application object based on your Django model
 interface JobApplication {
   id: number;
   job_id: number;
@@ -163,7 +163,8 @@ export default function CandidateProfile() {
               <div className="mb-4">
                 <h2 className="text-xl font-semibold text-purple-700">Personal Info</h2>
                 <div className="flex items-start mt-4">
-                  <img
+                  <Image height={40}
+                  width={40}
                     src={candidate?.avatarUrl || "https://via.placeholder.com/40"} // Use candidate's avatar or placeholder
                     alt={candidate?.first_name || "Candidate"}
                     className="w-16 h-16 rounded-full mr-4"

@@ -4,12 +4,13 @@
 import { useAuth } from '@/context/AuthContext'; 
 import { useRouter } from 'next/navigation'; 
 import { useEffect, useState } from 'react';
-
 import DashboardLayout from '@/components/DashboardLayout'; 
 import Button from '@/components/Button'; 
 import TextField from '@/components/TextField'; 
 import Link from 'next/link'; 
 import  api  from '@/lib/api'; 
+import Image from 'next/image';
+
 
 interface UserProfile {
   id: number;
@@ -174,7 +175,7 @@ export default function EditProfile() {
         <section>
           <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-sm">
             <div className="flex items-start mb-4">
-              <img
+              <Image
                 src={formData?.avatarUrl || "https://via.placeholder.com/40"} // Use user's avatar or placeholder
                 alt={formData?.first_name || "User"}
                 className="w-16 h-16 rounded-full mr-4"

@@ -8,6 +8,7 @@ import  api  from '@/lib/api';
 import { UserProfile, CompanyProfile } from '@/types'; 
 import { useLayout } from '@/context/LayoutContext';
 import { HomeIcon,BriefcaseIcon,UserIcon ,CircleStackIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 
 interface DashboardLayoutProps {
@@ -106,7 +107,7 @@ export default function DashboardLayout({ children, pageTitle }: DashboardLayout
             {/* User Profile Info */}
             <div className="flex items-center bg-gray-100 rounded-full p-2">
               {/* Display User Avatar or Placeholder */}
-              <img
+              <Image
                 src={profile?.avatarUrl || "https://via.placeholder.com/40"}
                 alt="User Avatar"
                 className="w-8 h-8 rounded-full mr-2"

@@ -7,21 +7,20 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout'; 
 import StatWidget from '@/components/StatWidget'; 
 import CandidateCard from '@/components/CandidateCard'; 
-import Button from '@/components/Button'; 
 import Link from 'next/link'; 
 import  api  from '@/lib/api'; 
-import { Job, Application } from '@/types'; 
+import { Job } from '@/types'; 
 import JobCard from '@/components/JobCard';
 
-// Define the shape of a Candidate object for recruiters
+
 interface Candidate {
   id: number;
   first_name: string;
   last_name: string;
   avatarUrl?: string;
   location: string;
-  applied_date: string; // e.g., "3 days ago" or ISO date string
-  match_score: number; // AI-calculated match score
+  applied_date: string; 
+  match_score: number; 
   match_details: {
     skills_matched: string[];
     skills_missing: string[];
