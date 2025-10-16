@@ -11,6 +11,7 @@ import { HomeIcon,BriefcaseIcon,UserIcon ,CircleStackIcon, MagnifyingGlassIcon }
 import Image from 'next/image';
 
 
+
 interface DashboardLayoutProps {
   children: ReactNode; 
   pageTitle: string; 
@@ -102,13 +103,15 @@ export default function DashboardLayout({ children, pageTitle }: DashboardLayout
       <main className="ml-64 flex-1 flex flex-col h-screen">
         {/* Top Bar */}
         <header className="bg-white  shadow-sm p-4 flex justify-between items-center border-b">
-          <h1 className="text-xl font-semibold text-gray-800">{pageTitle}</h1>
+          <h1 className="text-xl font-semibold text-gray-500">{pageTitle}</h1>
           <div className="flex items-center space-x-4">
             {/* User Profile Info */}
             <div className="flex items-center bg-gray-100 rounded-full p-2">
               {/* Display User Avatar or Placeholder */}
               <Image
-                src={profile?.avatarUrl || "https://via.placeholder.com/40"}
+              height={0}
+              width={0}
+                src={profile?.avatarUrl || "/images.png"}
                 alt="User Avatar"
                 className="w-8 h-8 rounded-full mr-2"
               />
