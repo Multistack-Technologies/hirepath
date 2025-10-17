@@ -41,14 +41,14 @@ export default function Modal({
       />
       
       {/* Modal Container - Fixed positioning prevents page scroll */}
-      <div className="fixed inset-0 flex items-center justify-center p-4">
+      <div className="fixed inset-0 flex items-center justify-center p-6">
         <div 
           className={`relative w-full ${sizeClasses[size]} bg-white rounded-lg shadow-xl transform transition-all max-h-[90vh] flex flex-col`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header - Fixed height, no scroll */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            <h3 className="text-lg font-semibold text-gray-600">{title}</h3>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -60,7 +60,7 @@ export default function Modal({
           </div>
           
           {/* Content - Scrollable area */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto py-4 px-6">
             {children}
           </div>
         </div>

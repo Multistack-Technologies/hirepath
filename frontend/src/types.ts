@@ -124,3 +124,31 @@ export interface CourseRecommendation {
   duration?: string;
   level?: string;
 }
+
+export interface Education {
+  id: number;
+  user: number;
+  university: University;
+  degree: Degree;
+  start_date: string;
+  end_date: string | null;
+  is_current: boolean;
+  gpa: number | null;
+  gpa_scale: number;
+  description: string | null;
+  duration: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface University {
+  id: number;
+  name: string;
+  // ... other university fields
+}
+
+export interface Degree {
+  id: number;
+  name: string;
+  // ... other degree fields
+}

@@ -74,7 +74,7 @@ export default function GraduateDashboard() {
       <section>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-500">Available Jobs</h2>
-          <Link href="/jobs" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+          <Link href="/Myjobs" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
             View All Jobs
           </Link>
         </div>
