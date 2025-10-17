@@ -11,6 +11,7 @@ import ProfileError from "./ProfileError";
 import ResumeSection from "./ResumeSection";
 import SkillsSection from "./SkillsSection";
 import ProfileLoading from "./ProfileLoading";
+import CertificateSection from "./CertificateSection";
 
 interface ProfileData {
   user_profile: UserProfile;
@@ -149,6 +150,7 @@ export default function ProfileContent() {
                 }}
               />
               <EducationSection profile={profileData.user_profile} />
+              <CertificateSection profile={profileData.user_profile} />
             </>
           )}
         </div>

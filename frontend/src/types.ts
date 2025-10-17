@@ -152,3 +152,28 @@ export interface Degree {
   name: string;
   // ... other degree fields
 }
+
+
+export interface Certificate {
+  id: number;
+  user: number;
+  provider: CertificateProvider;
+  credential_id: string | null;
+  certificate_url: string | null;
+  issue_date: string;
+  expiration_date: string | null;
+  is_permanent: boolean;
+  status: string;
+  score: number | null;
+  notes: string | null;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CertificateProvider {
+  id: number;
+  name: string;
+  website: string | null;
+  description: string | null;
+}
