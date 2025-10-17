@@ -177,3 +177,17 @@ export interface CertificateProvider {
   website: string | null;
   description: string | null;
 }
+
+
+export interface WorkExperience {
+  id: number;
+  user: number;
+  company_name: string;
+  job_title: string;
+  is_current: boolean;
+  description: string | null;
+  start_date: string;
+  end_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
