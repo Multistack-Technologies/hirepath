@@ -8,6 +8,17 @@ const nextConfig: NextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+    images: {
+    domains: [
+      'localhost',
+      '127.0.0.1',
+      'your-backend-domain.com',
+      "http://hirepath.co.za",
+      "https://hirepath.co.za",
+      "https://www.hirepath.co.za"
+      // Add all domains where your images are hosted
+    ],
+  }
 };
 
 export default nextConfig;

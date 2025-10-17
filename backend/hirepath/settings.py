@@ -1,8 +1,10 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+from django.conf import settings
 from dotenv import load_dotenv
 from decouple import config
+from pathlib import Path
 
 
 load_dotenv()  # loads backend/.env
@@ -146,6 +148,9 @@ STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 AUTH_USER_MODEL = "accounts.User"
 

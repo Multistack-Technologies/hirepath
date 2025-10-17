@@ -1,7 +1,7 @@
 export interface UserProfile {
   linkedin_url: string | null | undefined;
   phone_number: string | null | undefined;
-  location: any;
+  location: Location;
   id: number;
   username: string;
   email: string;

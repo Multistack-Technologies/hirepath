@@ -4,6 +4,7 @@ import { Skill } from '@/types';
 import Button from '@/components/Button';
 import AddSkillsModal from '@/components/skills/AddSkillsModal';
 import api from '@/lib/api';
+import { AiFillSafetyCertificate } from "react-icons/ai";
 
 interface SkillsSectionProps {
   onSkillsUpdate?: (skills: Skill[]) => void;
@@ -60,7 +61,8 @@ export default function SkillsSection({ onSkillsUpdate }: SkillsSectionProps) {
     <>
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-purple-700">Skills</h2>
+           <div className="text-xl font-semibold text-purple-700 flex space-x-1 items-center">    <AiFillSafetyCertificate  className="w-6 h-6" />
+          <h2>Skills</h2></div>
           <Button 
             variant="secondary" 
             size="md" 
