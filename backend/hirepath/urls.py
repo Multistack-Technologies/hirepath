@@ -27,6 +27,14 @@ urlpatterns = [
     path("companies/", include("companies.urls")),
     path("skills/", include("skills.urls")),
     path("applications/", include("applications.urls")),
+    path('universities/', include('universities.urls')),
+    path('degrees/', include('degrees.urls')),
+    path('education/', include('education.urls')),
+    path('certificate-providers/', include('certificate_providers.urls')),
+    path('certificates/', include('certificates.urls')),
+    path('job_roles/', include('job_roles.urls')),
+    path('work-experience/', include('work_experience.urls')),
+    path('analytics/', include('analytics.urls')),
 
        # Swagger URLs
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),

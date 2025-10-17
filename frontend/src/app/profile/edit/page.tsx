@@ -176,7 +176,9 @@ export default function EditProfile() {
           <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-sm">
             <div className="flex items-start mb-4">
               <Image
-                src={formData?.avatarUrl || "https://via.placeholder.com/40"} // Use user's avatar or placeholder
+                height={0}
+                width={0}
+                src={formData?.avatarUrl || "/images.png"} // Use user's avatar or placeholder
                 alt={formData?.first_name || "User"}
                 className="w-16 h-16 rounded-full mr-4"
               />

@@ -24,12 +24,13 @@ export default function AddSkillsModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch available skills
+  // Reset and fetch when modal opens
   useEffect(() => {
     if (isOpen) {
+      setSelectedSkills(existingSkills);
       fetchAvailableSkills();
     }
-  }, [isOpen]);
+  }, [isOpen, existingSkills]);
 
   const fetchAvailableSkills = async () => {
     setIsLoading(true);
@@ -38,6 +39,7 @@ export default function AddSkillsModal({
       setAvailableSkills(response.data || []);
     } catch (error) {
       console.error('Failed to fetch skills:', error);
+      alert('Failed to load skills. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -55,26 +57,44 @@ export default function AddSkillsModal({
   };
 
   const handleSave = async () => {
+    if (selectedSkills.length === 0) {
+      alert('Please select at least one skill');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      // Update user's skills using the new endpoint
+      // Use the set endpoint for bulk updates - replaces all skills
       const skillIds = selectedSkills.map(skill => skill.id);
-      const response = await api.post('/skills/user-skills/', { skill_ids: skillIds });
+      await api.post('/accounts/skills/set/', { skill_ids: skillIds });
       
+      // Notify parent component
       onSkillsAdded(selectedSkills);
+      
+      // Close modal
       onClose();
-    } catch (error) {
+      
+      // Show success message
+      alert(`Successfully updated ${selectedSkills.length} skill${selectedSkills.length !== 1 ? 's' : ''}!`);
+      
+    } catch (error: any) {
       console.error('Failed to save skills:', error);
-      alert('Failed to save skills. Please try again.');
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to save skills';
+      alert(`Error: ${errorMessage}`);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleClearAll = () => {
+    setSelectedSkills([]);
   };
 
   const filteredSkills = availableSkills.filter(skill =>
     skill.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Skills that are already in user's profile
   const existingSkillIds = existingSkills.map(skill => skill.id);
 
   return (
@@ -115,20 +135,25 @@ export default function AddSkillsModal({
                     onClick={() => handleSkillToggle(skill)}
                     className={`p-3 rounded-lg border text-left transition-all ${
                       isSelected
-                        ? 'bg-indigo-100 border-indigo-500 text-indigo-800'
-                        : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-300'
-                    } ${isExisting ? 'opacity-75' : ''}`}
+                        ? 'bg-indigo-100 border-indigo-500 text-indigo-800 shadow-sm'
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-300 hover:shadow-sm'
+                    } ${isExisting ? 'border-green-200 bg-green-50' : ''}`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{skill.name}</span>
-                      {isSelected && (
-                        <svg className="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
+                      <div className="flex items-center">
+                        {isExisting && (
+                          <span className="text-xs text-green-600 mr-2">✓</span>
+                        )}
+                        {isSelected && (
+                          <svg className="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
                     </div>
-                    {isExisting && (
-                      <span className="text-xs text-gray-500 mt-1">Already added</span>
+                    {isExisting && !isSelected && (
+                      <span className="text-xs text-green-600 mt-1">Already in your profile</span>
                     )}
                   </button>
                 );
@@ -150,9 +175,17 @@ export default function AddSkillsModal({
         {/* Selected Skills Preview */}
         {selectedSkills.length > 0 && (
           <div className="border-t pt-4 flex-shrink-0">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
-              Selected Skills ({selectedSkills.length})
-            </h4>
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="text-sm font-medium text-gray-700">
+                Selected Skills ({selectedSkills.length})
+              </h4>
+              <button
+                onClick={handleClearAll}
+                className="text-xs text-red-600 hover:text-red-800 font-medium"
+              >
+                Clear all
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
               {selectedSkills.map((skill) => (
                 <span
@@ -172,22 +205,34 @@ export default function AddSkillsModal({
           </div>
         )}
 
-        {/* Actions - Fixed at bottom */}
-        <div className="flex justify-end space-x-3 pt-4 border-t flex-shrink-0">
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            disabled={isSaving}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? 'Saving...' : `Save Skills (${selectedSkills.length})`}
-          </Button>
+        {/* Actions */}
+        <div className="flex justify-between items-center pt-4 border-t flex-shrink-0">
+          <div className="text-sm text-gray-500">
+            {selectedSkills.length} skill{selectedSkills.length !== 1 ? 's' : ''} selected
+          </div>
+          <div className="flex space-x-3">
+            <Button
+              variant="secondary"
+              onClick={onClose}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              disabled={isSaving || selectedSkills.length === 0}
+            >
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Saving...
+                </>
+              ) : (
+                `Save ${selectedSkills.length} Skill${selectedSkills.length !== 1 ? 's' : ''}`
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </Modal>

@@ -1,38 +1,53 @@
 # backend/resumes/engine.py
 import PyPDF2
 import docx
+import re
+import spacy
 from io import BytesIO
 import os
+from datetime import datetime
+from dateutil.parser import parse
 from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
+from .models import SAJobMarketData, CVAnalysis
 
-# --- Mock South African IT Skills Database ---
-# In a real app, this would likely come from a Django model or a file/database.
-SA_IT_SKILLS = [
-    "python", "java", "javascript", "html", "css", "react", "node.js", "sql",
-    "mysql", "postgresql", "aws", "azure", "docker", "git", "github", "linux",
-    "agile", "scrum", "api", "rest", "django", "flask", "machine learning",
-    "data analysis", "cybersecurity", "networking", "c++", "c#", "android",
-    "mobile development", "ui/ux", "typescript", "bootstrap", "jquery"
-]
+# Load spaCy model for advanced NLP
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    print("spaCy model not found. Install with: python -m spacy download en_core_web_sm")
+    nlp = None
 
-# --- Mock Job Role Requirements ---
-# In a real app, this would come from the Job model or a dedicated Requirements model.
-JOB_ROLE_REQUIREMENTS = {
-    "Junior Developer": ["python", "javascript", "html", "css", "git", "sql"],
-    "Data Analyst": ["python", "sql", "excel", "data analysis"],
-    "Cybersecurity Analyst": ["cybersecurity", "networking", "linux", "aws"],
-    "Full-Stack Developer": ["react", "node.js", "javascript", "git", "api"],
-    "IT Support": ["troubleshooting", "windows", "networking", "customer service"]
+# South African Market Data
+SA_MARKET_DATA = {
+    "skills_demand": {
+        "python": {"demand": 85, "salary_impact": 15},
+        "javascript": {"demand": 80, "salary_impact": 12},
+        "react": {"demand": 75, "salary_impact": 18},
+        "aws": {"demand": 70, "salary_impact": 20},
+        "docker": {"demand": 60, "salary_impact": 15},
+        "machine learning": {"demand": 50, "salary_impact": 25},
+        "cybersecurity": {"demand": 70, "salary_impact": 20},
+    },
+    "salary_ranges": {
+        "Johannesburg": {
+            "Junior Developer": [18000, 35000],
+            "Senior Developer": [45000, 85000],
+            "Data Analyst": [25000, 50000],
+        },
+        "Cape Town": {
+            "Junior Developer": [20000, 38000],
+            "Senior Developer": [48000, 90000],
+            "Data Analyst": [28000, 55000],
+        }
+    }
 }
 
 def extract_text_from_file(file_path):
-    """Extract text from a PDF or DOCX file."""
+    """Extract text from PDF or DOCX files"""
     try:
         with default_storage.open(file_path, 'rb') as file:
             file_content = file.read()
         
-        # Use BytesIO to treat the content as a file-like object
         file_like = BytesIO(file_content)
         _, ext = os.path.splitext(file_path)
         ext = ext.lower()
@@ -41,74 +56,446 @@ def extract_text_from_file(file_path):
             reader = PyPDF2.PdfReader(file_like)
             text = ""
             for page in reader.pages:
-                text += page.extract_text() or "" # Handle None from extract_text
-            return text.lower()
+                text += page.extract_text() or ""
+            return text
         elif ext in ['.docx']:
             doc = docx.Document(file_like)
             text = "\n".join([para.text for para in doc.paragraphs])
-            return text.lower()
-        elif ext == '.doc': # Basic support for .doc, might need python-docx2 for full support
-            # For simplicity, return a placeholder or log a warning
-            # A robust solution would use a library like antiword or python-docx2
-            print("Warning: .doc format support is limited.")
-            return "Text extraction for .doc files is not fully supported."
+            return text
         else:
             raise ValueError(f"Unsupported file extension: {ext}")
     except Exception as e:
-        print(f"Error extracting text from {file_path}: {e}")
-        return "" # Return empty string on error
+        print(f"Error extracting text: {e}")
+        return ""
 
-def extract_skills(text):
-    """Extract IT skills mentioned in the text."""
+def analyze_resume_comprehensive(text, job_role="Junior Developer", preferred_locations=None):
+    """Comprehensive resume analysis"""
+    if preferred_locations is None:
+        preferred_locations = ["Johannesburg", "Cape Town"]
+    
+    analysis = {}
+    
+    # Basic text analysis
+    analysis['text_quality'] = analyze_text_quality(text)
+    
+    # Extract comprehensive data
+    analysis['personal_insights'] = extract_personal_insights(text)
+    analysis['experience_analysis'] = extract_experience_analysis(text)
+    analysis['education_analysis'] = extract_education_analysis(text)
+    analysis['skills_analysis'] = extract_skills_analysis(text)
+    analysis['achievement_metrics'] = extract_achievement_metrics(text)
+    
+    # Market analysis
+    analysis['market_fit'] = analyze_market_fit(analysis, job_role, preferred_locations)
+    analysis['improvement_recommendations'] = generate_recommendations(analysis)
+    
+    # Calculate overall score
+    analysis['overall_score'] = calculate_overall_score(analysis)
+    
+    return analysis
+
+def extract_personal_insights(text):
+    """Extract personal and career insights"""
+    insights = {}
+    
+    # Experience years
+    experience_years = extract_experience_years(text)
+    insights['years_experience'] = experience_years
+    
+    # Career gaps
+    employment_periods = extract_employment_periods(text)
+    insights['career_gap_months'] = calculate_career_gaps(employment_periods)
+    insights['job_stability_score'] = calculate_job_stability(employment_periods)
+    
+    # Career progression
+    job_titles = extract_job_titles(text)
+    insights['career_progression'] = analyze_career_progression(job_titles)
+    
+    return insights
+
+def extract_experience_years(text):
+    """Extract total years of experience"""
+    patterns = [
+        r'(\d+)\s*years?\s*experience',
+        r'experience.*?(\d+)\s*years',
+        r'(\d+)\s*yr',
+    ]
+    
+    for pattern in patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        if matches:
+            return max([int(m) for m in matches])
+    
+    # Fallback: estimate from job history
+    return estimate_experience_from_dates(text)
+
+def extract_employment_periods(text):
+    """Extract employment periods from text"""
+    periods = []
+    
+    # Pattern for dates like "Jan 2020 - Dec 2022"
+    date_pattern = r'(\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4})\s*[-–—]\s*(\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}|\bPresent\b|\bCurrent\b)'
+    
+    matches = re.findall(date_pattern, text, re.IGNORECASE)
+    for start, end in matches:
+        try:
+            start_date = parse(start)
+            end_date = parse(end) if end.lower() not in ['present', 'current'] else datetime.now()
+            periods.append({'start': start_date, 'end': end_date})
+        except:
+            continue
+    
+    return periods
+
+def calculate_job_stability(periods):
+    """Calculate job stability score"""
+    if len(periods) < 2:
+        return 80  # Single job or no history
+    
+    total_months = sum(
+        (period['end'].year - period['start'].year) * 12 + 
+        (period['end'].month - period['start'].month)
+        for period in periods
+    )
+    
+    avg_months = total_months / len(periods)
+    
+    if avg_months >= 24: return 90
+    elif avg_months >= 18: return 75
+    elif avg_months >= 12: return 60
+    else: return 40
+
+def extract_job_titles(text):
+    """Extract job titles from text"""
+    titles = []
+    common_titles = [
+        'developer', 'engineer', 'analyst', 'manager', 'director', 'lead',
+        'architect', 'consultant', 'specialist', 'coordinator'
+    ]
+    
+    # Look for title patterns
+    title_pattern = r'(\b\w+\s+(?:' + '|'.join(common_titles) + r'))'
+    matches = re.findall(title_pattern, text, re.IGNORECASE)
+    titles.extend(matches)
+    
+    return list(set(titles))
+
+def analyze_career_progression(job_titles):
+    """Analyze career progression from job titles"""
+    if not job_titles:
+        return {"level": "unknown", "progression": "insufficient data"}
+    
+    seniority_keywords = {
+        'junior': 1, 'entry': 1, 'graduate': 1,
+        'mid': 2, 'intermediate': 2,
+        'senior': 3, 'lead': 3, 'principal': 4,
+        'manager': 4, 'director': 5, 'head': 5
+    }
+    
+    levels = []
+    for title in job_titles:
+        title_lower = title.lower()
+        for keyword, level in seniority_keywords.items():
+            if keyword in title_lower:
+                levels.append(level)
+                break
+    
+    if levels:
+        current_level = max(levels)
+        progression = "progressive" if len(set(levels)) > 1 else "stable"
+        return {"current_level": current_level, "progression": progression}
+    
+    return {"level": "unknown", "progression": "insufficient data"}
+
+def extract_education_analysis(text):
+    """Extract and analyze education information"""
+    education = {}
+    
+    # Extract qualifications
+    qualifications = extract_qualifications(text)
+    education['qualifications'] = qualifications
+    education['education_level'] = determine_education_level(qualifications)
+    
+    # Extract GPA
+    education['gpa'] = extract_gpa(text)
+    
+    # Extract certifications
+    education['certifications'] = extract_certifications(text)
+    
+    return education
+
+def extract_qualifications(text):
+    """Extract educational qualifications"""
+    qualifications = []
+    degree_patterns = [
+        r'\b(?:B\.?Sc|B\.?Eng|B\.?Com|B\.?Tech|Bachelor)\b',
+        r'\b(?:M\.?Sc|M\.?Eng|Master)\b',
+        r'\b(?:PhD|Doctorate)\b',
+        r'\b(?:Diploma|Certificate)\b'
+    ]
+    
+    for pattern in degree_patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        qualifications.extend(matches)
+    
+    return list(set(qualifications))
+
+def determine_education_level(qualifications):
+    """Determine highest education level"""
+    qual_text = ' '.join(qualifications).lower()
+    
+    if any(word in qual_text for word in ['phd', 'doctorate']):
+        return "Doctorate"
+    elif any(word in qual_text for word in ['m.sc', 'm.eng', 'master']):
+        return "Master's"
+    elif any(word in qual_text for word in ['b.sc', 'b.eng', 'b.com', 'bachelor']):
+        return "Bachelor's"
+    elif any(word in qual_text for word in ['diploma', 'certificate']):
+        return "Diploma/Certificate"
+    else:
+        return "Unknown"
+
+def extract_skills_analysis(text):
+    """Comprehensive skills analysis"""
+    skills = {}
+    
+    # Technical skills
+    skills['technical'] = extract_technical_skills(text)
+    skills['soft'] = extract_soft_skills(text)
+    skills['tools'] = extract_tools_technologies(text)
+    
+    # Skill categories
+    skills['categories'] = categorize_skills(skills['technical'])
+    
+    return skills
+
+def extract_technical_skills(text):
+    """Extract technical skills"""
+    technical_skills = [
+        'python', 'javascript', 'java', 'c#', 'c++', 'sql', 'html', 'css',
+        'react', 'angular', 'vue', 'node.js', 'django', 'flask', 'spring',
+        'aws', 'azure', 'docker', 'kubernetes', 'jenkins', 'git',
+        'machine learning', 'data analysis', 'cybersecurity', 'networking'
+    ]
+    
     found_skills = []
-    for skill in SA_IT_SKILLS:
-        # Simple keyword matching. Can be enhanced with NLP/spaCy for better accuracy.
-        if skill in text:
-            # Capitalize for display, avoid duplicates
-            skill_title_case = skill.title()
-            if skill_title_case not in found_skills:
-                found_skills.append(skill_title_case)
+    for skill in technical_skills:
+        if skill in text.lower():
+            found_skills.append(skill.title())
+    
     return found_skills
 
-def calculate_score_and_feedback(skills_detected, job_role="Junior Developer"):
-    """Calculate score and generate feedback based on job role requirements."""
-    required_skills = JOB_ROLE_REQUIREMENTS.get(job_role, ["python", "sql", "git"])
+def extract_soft_skills(text):
+    """Extract soft skills"""
+    soft_skills = [
+        'leadership', 'communication', 'teamwork', 'problem solving',
+        'critical thinking', 'adaptability', 'time management',
+        'project management', 'agile', 'scrum'
+    ]
     
-    # --- Calculate Score ---
-    matched_skills = [s for s in skills_detected if s.lower() in [rs.lower() for rs in required_skills]]
-    score = (len(matched_skills) / len(required_skills)) * 100 if required_skills else 0
+    found_skills = []
+    for skill in soft_skills:
+        if skill in text.lower():
+            found_skills.append(skill.title())
     
-    # --- Identify Missing Skills ---
-    missing_skills = [s for s in required_skills if s.title() not in skills_detected]
-    
-    # --- Generate Feedback ---
-    feedback = []
-    if "Git" not in skills_detected:
-        feedback.append("Add GitHub or version control experience.")
-    if "Python" not in skills_detected and "python" in [rs.lower() for rs in required_skills]:
-        feedback.append("Include Python projects or coursework.")
-    if len(skills_detected) < 3:
-        feedback.append("Expand your skills section with tools and projects.")
-    if score < 60:
-        feedback.append("Your resume needs more relevant technical skills.")
+    return found_skills
 
-    return {
-        "score": round(score, 2),
-        "skills_detected": skills_detected,
-        "missing_skills": missing_skills,
-        "feedback": feedback,
-        "job_role_matched": job_role
+def extract_achievement_metrics(text):
+    """Extract and quantify achievements"""
+    achievements = {}
+    
+    # Quantifiable achievements
+    achievements['quantifiable'] = extract_quantifiable_achievements(text)
+    achievements['count'] = len(achievements['quantifiable'])
+    
+    # Leadership indicators
+    achievements['leadership'] = detect_leadership(text)
+    achievements['management'] = detect_management(text)
+    
+    return achievements
+
+def extract_quantifiable_achievements(text):
+    """Extract achievements with numbers"""
+    patterns = [
+        r'increased\s+.*?\s+by\s+(\d+%|\$\d+)',
+        r'reduced\s+.*?\s+by\s+(\d+%|\$\d+)',
+        r'improved\s+.*?\s+by\s+(\d+%)',
+        r'saved\s+.*?\s+(\$\d+|\d+%|\d+\s+hours)',
+        r'achieved\s+.*?\s+(\d+%|\$\d+)',
+        r'managed\s+.*?\s+of\s+(\$\d+)',
+        r'led\s+.*?\s+team\s+of\s+(\d+)',
+    ]
+    
+    achievements = []
+    for pattern in patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        achievements.extend(matches)
+    
+    return achievements
+
+def detect_leadership(text):
+    """Detect leadership experience"""
+    leadership_indicators = [
+        'led', 'managed', 'directed', 'oversaw', 'supervised', 'headed',
+        'team lead', 'team leadership', 'mentored', 'guided', 'coordinated'
+    ]
+    
+    return any(indicator in text.lower() for indicator in leadership_indicators)
+
+def analyze_market_fit(analysis, job_role, preferred_locations):
+    """Analyze market fit for South African job market"""
+    market_fit = {}
+    
+    # Skills demand analysis
+    technical_skills = analysis['skills_analysis']['technical']
+    market_fit['skills_demand_score'] = calculate_skills_demand_score(technical_skills)
+    
+    # Salary compatibility
+    market_fit['salary_benchmarks'] = get_salary_benchmarks(job_role, preferred_locations)
+    
+    # Location analysis
+    market_fit['location_demand'] = analyze_location_demand(job_role, preferred_locations)
+    
+    # Overall market score
+    market_fit['market_score'] = calculate_market_score(market_fit)
+    
+    return market_fit
+
+def calculate_skills_demand_score(skills):
+    """Calculate how in-demand the skills are"""
+    if not skills:
+        return 0
+    
+    total_demand = 0
+    for skill in skills:
+        skill_lower = skill.lower()
+        if skill_lower in SA_MARKET_DATA['skills_demand']:
+            total_demand += SA_MARKET_DATA['skills_demand'][skill_lower]['demand']
+    
+    return total_demand / len(skills) if skills else 0
+
+def generate_recommendations(analysis):
+    """Generate personalized recommendations"""
+    recommendations = []
+    
+    # Skills recommendations
+    skills = analysis['skills_analysis']['technical']
+    high_demand_skills = ['Python', 'AWS', 'React', 'Docker']
+    missing_high_demand = [skill for skill in high_demand_skills if skill not in skills]
+    
+    if missing_high_demand:
+        recommendations.append({
+            'category': 'skills',
+            'priority': 'high',
+            'message': f'Learn high-demand skills: {", ".join(missing_high_demand[:2])}',
+            'actions': [
+                'Take online courses on Coursera or Udemy',
+                'Build projects using these technologies'
+            ]
+        })
+    
+    # Career recommendations
+    experience = analysis['personal_insights'].get('years_experience', 0)
+    if experience >= 5:
+        recommendations.append({
+            'category': 'career',
+            'priority': 'medium',
+            'message': 'Consider senior or leadership roles',
+            'actions': [
+                'Update your LinkedIn profile with leadership achievements',
+                'Network with senior professionals in your industry'
+            ]
+        })
+    
+    return recommendations
+
+def calculate_overall_score(analysis):
+    """Calculate overall resume score"""
+    weights = {
+        'experience': 0.3,
+        'skills': 0.25,
+        'education': 0.15,
+        'achievements': 0.2,
+        'market_fit': 0.1
     }
+    
+    scores = {}
+    
+    # Experience score
+    experience_years = analysis['personal_insights'].get('years_experience', 0)
+    stability = analysis['personal_insights'].get('job_stability_score', 50)
+    scores['experience'] = min(100, experience_years * 10 + stability * 0.5)
+    
+    # Skills score
+    skills_demand = analysis['market_fit'].get('skills_demand_score', 0)
+    skills_count = len(analysis['skills_analysis']['technical'])
+    scores['skills'] = min(100, skills_demand + skills_count * 2)
+    
+    # Education score
+    education_level = analysis['education_analysis'].get('education_level', 'Unknown')
+    education_scores = {
+        'Doctorate': 100, "Master's": 85, "Bachelor's": 70,
+        'Diploma/Certificate': 60, 'Unknown': 40
+    }
+    scores['education'] = education_scores.get(education_level, 40)
+    
+    # Achievements score
+    achievement_count = analysis['achievement_metrics'].get('count', 0)
+    scores['achievements'] = min(100, achievement_count * 10)
+    
+    # Market fit score
+    scores['market_fit'] = analysis['market_fit'].get('market_score', 50)
+    
+    # Calculate weighted average
+    total_score = sum(scores[category] * weight for category, weight in weights.items())
+    
+    return round(total_score, 2)
 
-# --- Main AI Analysis Function ---
-def analyze_resume(file_path, job_role="Junior Developer"):
-
+# Main analysis function
+def analyze_resume(file_path, job_role="Junior Developer", preferred_locations=None, salary_expectation=None):
+    """Main resume analysis function"""
+    if preferred_locations is None:
+        preferred_locations = ["Johannesburg", "Cape Town", "Pretoria"]
+    
+    # Extract text
     raw_text = extract_text_from_file(file_path)
     if not raw_text:
         return {"error": "Failed to read the uploaded file."}
-
-    skills = extract_skills(raw_text)
-
-    result = calculate_score_and_feedback(skills, job_role)
-
+    
+    # Comprehensive analysis
+    comprehensive_analysis = analyze_resume_comprehensive(raw_text, job_role, preferred_locations)
+    
+    # Prepare response
+    result = {
+        "score": comprehensive_analysis['overall_score'],
+        "skills_detected": comprehensive_analysis['skills_analysis']['technical'],
+        "missing_skills": find_missing_skills(comprehensive_analysis['skills_analysis']['technical']),
+        "feedback": generate_feedback(comprehensive_analysis),
+        "job_role_matched": job_role,
+        "comprehensive_analysis": comprehensive_analysis
+    }
+    
     return result
+
+def find_missing_skills(detected_skills):
+    """Find missing high-demand skills"""
+    high_demand = ['Python', 'AWS', 'React', 'Docker', 'JavaScript']
+    return [skill for skill in high_demand if skill not in detected_skills]
+
+def generate_feedback(analysis):
+    """Generate actionable feedback"""
+    feedback = []
+    
+    # Skills feedback
+    if analysis['market_fit']['skills_demand_score'] < 70:
+        feedback.append("Your skills could be more aligned with current market demands.")
+    
+    # Experience feedback
+    if analysis['personal_insights'].get('years_experience', 0) < 2:
+        feedback.append("Consider gaining more practical experience through internships or projects.")
+    
+    # Achievement feedback
+    if analysis['achievement_metrics']['count'] < 3:
+        feedback.append("Add more quantifiable achievements to demonstrate impact.")
+    
+    return feedback

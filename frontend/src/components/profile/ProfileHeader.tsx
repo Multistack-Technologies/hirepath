@@ -1,16 +1,9 @@
-import Button from '@/components/Button';
-
-interface ProfileHeaderProps {
-  onEdit: () => void;
-}
-
-export default function ProfileHeader({ onEdit }: ProfileHeaderProps) {
+// components/profile/ProfileHeader.tsx
+export default function ProfileHeader() {
   return (
     <div className="flex justify-between items-center mb-6">
       <h1 className="text-2xl font-bold text-gray-800">Profile</h1>
-      <Button variant="primary" size="md" onClick={onEdit}>
-        EDIT PROFILE
-      </Button>
+      {/* Edit button removed from here - now it's in PersonalInfoSection */}
     </div>
   );
 }

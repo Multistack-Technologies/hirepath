@@ -1,24 +1,35 @@
 # backend/applications/serializers.py
 from rest_framework import serializers
 from .models import Application
+from accounts.serializers import UserSerializer
 
 class ApplicationSerializer(serializers.ModelSerializer):
     applicant_name = serializers.CharField(source="applicant.get_full_name", read_only=True)
+    applicant_email = serializers.CharField(source="applicant.email", read_only=True)
+    applicant_details = serializers.SerializerMethodField(read_only=True)
+    
     job_title = serializers.CharField(source="job.title", read_only=True)
     company_name = serializers.CharField(source="job.company.name", read_only=True)
+    company_logo = serializers.SerializerMethodField(read_only=True)
     
     match_score = serializers.SerializerMethodField()
     match_details = serializers.SerializerMethodField()
+    
+    can_withdraw = serializers.SerializerMethodField(read_only=True)
    
     class Meta:
         model = Application
         fields = [
-            "id", "job", "job_title", "company_name", "applicant", "applicant_name", 
-            "cover_letter", "status", "applied_at", "match_score", "match_details"
+            "id", "job", "job_title", "company_name", "company_logo",
+            "applicant", "applicant_name", "applicant_email", "applicant_details",
+            "cover_letter", "status", "applied_at", "updated_at", 
+            "match_score", "match_details", "notes", "interview_date",
+            "can_withdraw"
         ]
         read_only_fields = [
-            "id", "status", "applied_at", "applicant_name", "job_title", 
-            "company_name", "applicant", "match_score", "match_details"
+            "id", "status", "applied_at", "updated_at", "applicant_name", 
+            "applicant_email", "job_title", "company_name", "company_logo",
+            "applicant", "match_score", "match_details", "can_withdraw"
         ]
 
     def get_match_score(self, obj):
@@ -29,3 +40,34 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
     def get_match_details(self, obj):
         return obj.calculate_match_details()
+
+    def get_company_logo(self, obj):
+        if obj.job.company.logo and hasattr(obj.job.company.logo, 'url'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.job.company.logo.url)
+            return obj.job.company.logo.url
+        return None
+
+    def get_applicant_details(self, obj):
+        """Return essential applicant details for recruiters"""
+        return {
+            "location": obj.applicant.location or "Not specified",
+            "bio": obj.applicant.bio or "",
+            "linkedin_url": obj.applicant.linkedin_url or "",
+            "current_job_title": obj.applicant.job_title or "Not specified"
+        }
+
+    def get_can_withdraw(self, obj):
+        """Check if application can be withdrawn"""
+        return obj.status in [Application.Status.PENDING, Application.Status.REVIEWED, Application.Status.SHORTLISTED]
+
+class ApplicationStatusUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Application
+        fields = ['status', 'notes', 'interview_date']
+
+class ApplicationCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Application
+        fields = ['job', 'cover_letter']

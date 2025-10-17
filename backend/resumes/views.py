@@ -7,8 +7,10 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 import os
 from .models import Resume
-from .engine import analyze_resume # Import the AI engine
-from .serializers import ResumeUploadSerializer, ResumeFeedbackSerializer # We'll create these
+from .engine import analyze_resume
+from .serializers import ResumeUploadSerializer, ResumeFeedbackSerializer 
+from rest_framework import permissions
+from .recommendation_engine import CareerRecommendationEngine
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -109,3 +111,80 @@ def get_latest_resume_analysis(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 # --- End of New GET view ---
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def job_role_recommendations(request):
+    """Get personalized job role recommendations"""
+    try:
+        user = request.user
+        engine = CareerRecommendationEngine()
+        
+        top_n = int(request.GET.get('limit', 10))
+        recommendations = engine.recommend_job_roles(user, top_n)
+        
+        return Response({
+            'success': True,
+            'recommendations': recommendations,
+            'user_skills_count': user.skills.count(),
+            'total_job_roles_considered': len(recommendations)
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def certificate_recommendations(request):
+    """Get personalized certificate recommendations"""
+    try:
+        user = request.user
+        engine = CareerRecommendationEngine()
+        
+        top_n = int(request.GET.get('limit', 10))
+        recommendations = engine.recommend_certificates(user, top_n)
+        
+        return Response({
+            'success': True,
+            'recommendations': recommendations,
+            'user_certificates_count': user.certificates.count(),
+            'total_certificates_considered': len(recommendations)
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def career_insights(request):
+    """Get comprehensive career insights"""
+    try:
+        user = request.user
+        engine = CareerRecommendationEngine()
+        
+        insights = engine.get_career_insights(user)
+        
+        return Response({
+            'success': True,
+            'insights': insights,
+            'user_profile': {
+                'total_skills': user.skills.count(),
+                'total_experience': user.work_experiences.count(),
+                'total_education': user.educations.count(),
+                'total_certificates': user.certificates.count(),
+                'target_roles_count': user.target_job_roles.count()
+            }
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=500)

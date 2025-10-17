@@ -7,11 +7,14 @@ export interface UserProfile {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'graduate' | 'recruiter';
   phone: string;
   avatarUrl?: string; 
   bio?: string;
   job_title?: string;
+  role: 'GRADUATE' | 'RECRUITER';
+  skills: Skill[];
+  date_joined?: string;
+  last_login?: string;
 }
 
 export interface CompanyProfile {
@@ -88,3 +91,36 @@ export interface GraduateStats {
 }
 
 
+// types/index.ts
+export interface ResumeAnalysis {
+  score: number;
+  total_score: number;
+  file_name?: string;
+  uploaded_at?: string;
+  job_matches?: JobMatch[];
+  skills_detected?: string[];
+  missing_skills?: string[];
+  course_recommendations?: CourseRecommendation[];
+  user?: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+}
+
+export interface JobMatch {
+  id: number;
+  title: string;
+  company: string;
+  match_score: number;
+  location?: string;
+}
+
+export interface CourseRecommendation {
+  id: number;
+  name: string;
+  url: string;
+  platform: string;
+  duration?: string;
+  level?: string;
+}

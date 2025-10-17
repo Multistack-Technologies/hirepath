@@ -34,7 +34,17 @@ INSTALLED_APPS = [
     "resumes",
     "matching",
     "skills",
-    "applications"
+    "applications",
+    "universities",
+    "degrees",
+    "education",
+    "certificate_providers",
+    "certificates",
+    "job_roles",
+    "work_experience",
+    "analytics",
+   
+   
 ]
 
 MIDDLEWARE = [
@@ -48,7 +58,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Allow credentials (cookies, authorization headers)
 CORS_ALLOW_CREDENTIALS = True
@@ -63,30 +73,7 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-# Allowed headers
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
 
-SECURE_SSL_REDIRECT = not DEBUG
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000", 
-    "https://hirepaths.vercel.app",
-    "https://hirepath.co.za",
-]
 
 # REST Framework Settings
 REST_FRAMEWORK = {
@@ -170,3 +157,19 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {"ACCESS_TOKEN_LIFETIME": timedelta(hours=12)}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO', # Adjust level as needed (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django_debug.log'), # Log file in your project directory
+        },
+    },
+    'root': {
+        'handlers': ['file'],
+        'level': 'INFO', # Adjust level as needed
+    },
+}
