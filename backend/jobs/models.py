@@ -1,8 +1,9 @@
 from django.db import models
 from django.conf import settings
+from certificate_providers.models import CertificateProvider
 from companies.models import Company
 from skills.models import Skill
-from certificates.models import Certificate
+
 from degrees.models import Degree
 
 User = settings.AUTH_USER_MODEL
@@ -51,7 +52,7 @@ class Job(models.Model):
     
     # Relationships
     skills_required = models.ManyToManyField(Skill, blank=True, related_name="jobs")
-    certificates_preferred = models.ManyToManyField(Certificate, blank=True, related_name="jobs")
+    certificates_preferred = models.ManyToManyField(CertificateProvider, blank=True, related_name="jobs")
     courses_preferred = models.ManyToManyField(Degree, blank=True, related_name="jobs")
     
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="jobs")
@@ -63,9 +64,16 @@ class Job(models.Model):
     def is_active(self):
         """Check if job is still active based on closing date"""
         from django.utils import timezone
+        from datetime import date
         if not self.closing_date:
             return True
-        return self.closing_date >= timezone.now().date()
+        return self.closing_date >= date.today()
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['employment_type']),
+            models.Index(fields=['work_type']),
+            models.Index(fields=['experience_level']),
+            models.Index(fields=['closing_date']),
+        ]

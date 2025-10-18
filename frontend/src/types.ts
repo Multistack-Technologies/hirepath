@@ -33,6 +33,7 @@ export interface Skill {
 
 
 
+
 export interface ResumeFeedback {
   score: number; 
   skills_detected: string[]; 
@@ -45,7 +46,7 @@ export interface Application{
     id:number;
 }
 
-export interface Candidate {
+export interface Candidates {
   id: number;
   first_name: string;
   last_name: string;
@@ -60,21 +61,25 @@ export interface Candidate {
   };
 }
 
-export interface Job {
+
+
+
+export interface Candidate {
   id: number;
-  title: string;
-  company: string;
+  first_name: string;
+  last_name: string;
+  avatarUrl?: string;
   location: string;
-  salary_range: string;
-  employment_type: string;
-  description: string;
-  requirementIds: number[]; 
-  skills_required : Skill[];
-  posted_date: string;
-  application_deadline: string;
-  remote_ok: boolean;
-  // Add other fields as needed
+  applied_date: string;
+  match_score?: number;
+  total_requirements?: number;
 }
+
+export interface Skill {
+  id: number;
+  name: string;
+}
+
 
 export interface RecruiterStats {
   totalJobs: number;
@@ -190,4 +195,132 @@ export interface WorkExperience {
   end_date: string | null;
   created_at: string;
   updated_at: string;
+}
+
+
+// types/job.ts
+export interface Job {
+  id: number;
+  title: string;
+  description: string;
+  company: number;
+  company_name: string;
+  company_logo: string | null;
+  location: string;
+  employment_type: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'FREELANCE' | 'INTERNSHIP' | 'TEMPORARY';
+  employment_type_display: string;
+  work_type: 'ONSITE' | 'REMOTE' | 'HYBRID';
+  work_type_display: string;
+  experience_level: 'ENTRY' | 'MID' | 'SENIOR' | 'LEAD';
+  experience_level_display: string;
+  min_salary: number | null;
+  max_salary: number | null;
+  salary_range: string;
+  closing_date: string | null;
+  is_active: boolean;
+  days_remaining: number | null;
+  skills_required: Skill[];
+  certificates_preferred: CertificateProvider[];
+  courses_preferred: Degree[];
+  created_by: number;
+  created_at: string;
+  updated_at: string;
+  skills_count?: number;
+}
+
+export interface JobCreateData {
+  title: string;
+  description: string;
+  location: string;
+  employment_type: string;
+  work_type: string;
+  experience_level: string;
+  min_salary?: number;
+  max_salary?: number;
+  closing_date?: string;
+  skills_required_ids?: number[];
+  certificates_preferred_ids?: number[];
+  courses_preferred_ids?: number[];
+}
+
+export interface JobFilters {
+  employment_type?: string;
+  work_type?: string;
+  experience_level?: string;
+  skills?: string[];
+  location?: string;
+  company?: string;
+  search?: string;
+}
+
+export interface JobStats {
+  total_jobs: number;
+  active_jobs: number;
+  employment_types: Record<string, { display_name: string; count: number }>;
+  work_types: Record<string, { display_name: string; count: number }>;
+}
+
+export interface JobCategories {
+  employment_types: Record<string, string>;
+  work_types: Record<string, string>;
+  experience_levels: Record<string, string>;
+}
+
+// Form options
+export const EMPLOYMENT_TYPES = [
+  { value: 'FULL_TIME', label: 'Full-time' },
+  { value: 'PART_TIME', label: 'Part-time' },
+  { value: 'CONTRACT', label: 'Contract' },
+  { value: 'FREELANCE', label: 'Freelance' },
+  { value: 'INTERNSHIP', label: 'Internship' },
+  { value: 'TEMPORARY', label: 'Temporary' },
+] as const;
+
+export const WORK_TYPES = [
+  { value: 'ONSITE', label: 'On-site' },
+  { value: 'REMOTE', label: 'Remote' },
+  { value: 'HYBRID', label: 'Hybrid' },
+] as const;
+
+export const EXPERIENCE_LEVELS = [
+  { value: 'ENTRY', label: 'Entry Level (0-2 years)' },
+  { value: 'MID', label: 'Mid Level (2-5 years)' },
+  { value: 'SENIOR', label: 'Senior Level (5+ years)' },
+  { value: 'LEAD', label: 'Lead/Manager' },
+] as const;
+
+export interface JobFormData {
+  title: string;
+  description: string;
+  location: string;
+  employment_type?: string;
+  work_type?: string;
+  experience_level?: string;
+  min_salary?: number;
+  max_salary?: number;
+  closing_date?: string;
+  skills_required_ids: number[];
+  certificates_preferred_ids?: number[];
+  courses_preferred_ids?: number[];
+}
+
+export interface JobCreatePayload {
+  title: string;
+  description: string;
+  location: string;
+  employment_type?: string;
+  work_type?: string;
+  experience_level?: string;
+  min_salary?: number;
+  max_salary?: number;
+  closing_date?: string;
+  skills_required_ids: number[];
+  certificates_preferred_ids?: number[];
+  courses_preferred_ids?: number[];
+}
+
+export interface SelectableItem {
+  id: number;
+  name: string;
+  [key: string]: any; // For additional properties
 }

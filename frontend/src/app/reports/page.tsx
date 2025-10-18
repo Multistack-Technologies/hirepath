@@ -4,7 +4,7 @@
 import { useAuth } from '@/context/AuthContext'; 
 import { useRouter } from 'next/navigation'; 
 import { useEffect, useState } from 'react';
-import DashboardLayout from '@/components/DashboardLayout'; 
+import DashboardLayout from '@/components/layout/DashboardLayout'; 
 import  api  from '@/lib/api'; 
 
 // Define the shape of the Report Summary object based on your Django model/API

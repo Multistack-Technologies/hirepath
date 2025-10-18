@@ -83,7 +83,7 @@ export default function ProfileContent() {
 
   const fetchRecruiterData = async (data: ProfileData) => {
     try {
-      const companyResponse = await api.get("/companies/my-company/");
+      const companyResponse = await api.get("/companies/me");
       if (companyResponse.data) {
         data.company_profile = companyResponse.data;
       }
@@ -97,7 +97,7 @@ export default function ProfileContent() {
   };
 
   const handleCreateCompanyProfile = () => {
-    router.push("/companies/create");
+    router.push("/profile/company/create");
   };
 
   const openUploadModal = () => setIsUploadModalOpen(true);

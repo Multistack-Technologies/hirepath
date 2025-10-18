@@ -4,7 +4,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import Button from '@/components/Button';
 import ResumeAnalysisLoading from '@/components/analysis/ResumeAnalysisLoading';
 import ResumeAnalysisError from '@/components/analysis/ResumeAnalysisError';

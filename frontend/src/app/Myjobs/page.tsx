@@ -3,7 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import FindWorkContent from '@/components/find-work/FindWorkContent';
 import FindWorkLoading from '@/components/find-work/FindWorkLoading';
 
