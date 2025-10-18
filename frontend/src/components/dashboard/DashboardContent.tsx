@@ -16,8 +16,7 @@ export default function DashboardContent() {
     return (
       <DashboardError 
         message="User information not available. Please log in again." 
-        showRedirect={true}
-        redirectUrl="/login"
+        
       />
     );
   }
@@ -28,7 +27,6 @@ export default function DashboardContent() {
     return (
       <DashboardError 
         message={`User role not found. Available properties: ${Object.keys(user).join(', ')}`}
-        showRedirect={true}
       />
     );
   }
@@ -38,7 +36,7 @@ export default function DashboardContent() {
     return (
       <DashboardError 
         message={`Access Denied. Invalid user role: ${user.role}`} 
-        showRedirect={true}
+
       />
     );
   }
@@ -53,7 +51,6 @@ export default function DashboardContent() {
       return (
         <DashboardError 
           message="Unknown user role. Please contact support." 
-          showRedirect={true}
         />
       );
   }

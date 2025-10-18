@@ -65,6 +65,8 @@ export interface Candidates {
 
 
 export interface Candidate {
+  skills: never[];
+  current_job_title: string;
   id: number;
   first_name: string;
   last_name: string;
@@ -200,6 +202,7 @@ export interface WorkExperience {
 
 // types/job.ts
 export interface Job {
+  skills: any;
   id: number;
   title: string;
   description: string;

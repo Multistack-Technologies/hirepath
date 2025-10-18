@@ -1,103 +1,89 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Candidate } from '@/types';
-import api from '@/lib/api';
-import StatWidget from '@/components/StatWidget';
-import CandidateCard from '@/components/CandidateCard';
-import Link from 'next/link';
+// components/dashboard/RecruiterDashboard.tsx
+import { useRecruiterData } from '@/hooks/useRecruiterData';
+import StatsSection from './StatsSection';
+import CandidatesSection from './CandidatesSection';
 import DashboardError from './DashboardError';
 import DashboardLoading from './DashboardLoading';
 
-interface RecruiterStats {
-  totalJobs: number;
-  activeApplications: number;
-  shortlisted: number;
-  hired: number;
-}
-
 export default function RecruiterDashboard() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [stats, setStats] = useState<RecruiterStats>({
-    totalJobs: 0,
-    activeApplications: 0,
-    shortlisted: 0,
-    hired: 0,
-  });
-
-  const fetchRecruiterData = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const [statsResponse, candidatesResponse] = await Promise.all([
-        api.get('/recruiter/stats/'),
-        api.get<{ results: Candidate[] }>('/recruiter/candidates/'),
-      ]);
-
-      if (statsResponse.data) {
-        setStats(statsResponse.data);
-      }
-
-      if (candidatesResponse.data?.results) {
-        setCandidates(candidatesResponse.data.results);
-      }
-    } catch (err: any) {
-      console.error('Error fetching recruiter data:', err);
-      setError(err.response?.data?.error || err.message || 'Failed to load recruiter dashboard data');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRecruiterData();
-  }, []);
+  const { stats, candidates, isLoading, error, refetch } = useRecruiterData();
 
   if (isLoading) return <DashboardLoading />;
-  if (error) return <DashboardError message={error} onRetry={fetchRecruiterData} />;
+  if (error) return <DashboardError message={error} onRetry={refetch} />;
 
   return (
-    <>
-      {/* Stats Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <StatWidget title="Total Jobs" value={stats.totalJobs} color="blue" />
-        <StatWidget title="Active Applications" value={stats.activeApplications} color="purple" />
-        <StatWidget title="Shortlisted" value={stats.shortlisted} color="orange" />
-        <StatWidget title="Hired" value={stats.hired} color="indigo" />
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
+        <p className="opacity-90">
+          Here's what's happening with your job postings and candidates today.
+        </p>
+      </div>
+
+      {/* Stats Section */}
+      <StatsSection stats={stats} />
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <QuickAction
+          title="Post a Job"
+          description="Create a new job posting"
+          href="/recruiter/jobs/post"
+          icon="📝"
+          color="blue"
+        />
+        <QuickAction
+          title="View Applications"
+          description="Review candidate applications"
+          href="/recruiter/applications"
+          icon="👥"
+          color="green"
+        />
+        <QuickAction
+          title="Analytics"
+          description="View performance insights"
+          href="/recruiter/analytics"
+          icon="📊"
+          color="purple"
+        />
       </div>
 
       {/* Candidates Section */}
-      <section>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">Top Candidates</h2>
-          <Link href="/jobs" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-            View All Jobs
-          </Link>
+      <CandidatesSection candidates={candidates} />
+    </div>
+  );
+}
+
+// Quick Action Component
+interface QuickActionProps {
+  title: string;
+  description: string;
+  href: string;
+  icon: string;
+  color: 'blue' | 'green' | 'purple' | 'orange';
+}
+
+function QuickAction({ title, description, href, icon, color }: QuickActionProps) {
+  const colorClasses = {
+    blue: 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100',
+    green: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100',
+    purple: 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100',
+    orange: 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100',
+  };
+
+  return (
+    <a
+      href={href}
+      className={`block p-4 border-2 rounded-lg transition-colors duration-200 ${colorClasses[color]}`}
+    >
+      <div className="flex items-center space-x-3">
+        <span className="text-2xl">{icon}</span>
+        <div>
+          <h3 className="font-semibold">{title}</h3>
+          <p className="text-sm opacity-80">{description}</p>
         </div>
-        
-        {candidates.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            No candidates have applied to your jobs yet.
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {candidates.map((candidate) => (
-              <CandidateCard
-                key={candidate.id}
-                name={`${candidate.first_name} ${candidate.last_name}`}
-                jobTitle=""
-                location={candidate.location}
-                postedAgo={candidate.applied_date}
-                matchScore={`${candidate.match_score}/100`}
-                onViewProfileClick={() => router.push(`/candidates/${candidate.id}`)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-    </>
+      </div>
+    </a>
   );
 }
