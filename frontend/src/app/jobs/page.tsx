@@ -1,28 +1,21 @@
+// app/recruiter/jobs/page.tsx
 'use client';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import MyJobsHeader from '@/components/jobs/MyJobsHeader';
+import JobList from '@/components/jobs/JobList';
+import JobsErrorState from '@/components/jobs/JobsErrorState';
+import { useMyJobs } from '@/hooks/useMyJobs';
 import Button from '@/components/Button';
-import { useJobs } from '@/hooks/useJobs';
-import { Job } from '@/types';
-import JobCard from '@/components/JobCard';
 
 export default function MyJobs() {
   const { user } = useAuth();
   const router = useRouter();
-  const { isLoading, error, fetchMyJobs } = useJobs();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const { jobs, isLoading, error, refetch } = useMyJobs();
 
-  const fetchJobs = async () => {
-    try {
-      const jobsData = await fetchMyJobs();
-      setJobs(jobsData);
-    } catch (err) {
-      // Error handled in hook
-    }
-  };
-
+  // Redirect if not authenticated or not recruiter
   useEffect(() => {
     if (!user) {
       router.push('/login');
@@ -30,10 +23,9 @@ export default function MyJobs() {
     }
 
     if (user.role !== 'RECRUITER') {
+      router.push('/dashboard'); // Redirect graduates to their dashboard
       return;
     }
-
-    fetchJobs();
   }, [user, router]);
 
   const handlePostNewVacancy = () => {
@@ -41,57 +33,69 @@ export default function MyJobs() {
   };
 
   const handleEditJob = (jobId: number) => {
-    router.push(`/jobs/edit/${jobId}`);
+    router.push(`jobs/edit/${jobId}`);
   };
 
   const handleViewApplications = (jobId: number) => {
-    router.push(`/jobs/${jobId}`);
+    router.push(`/jobs/${jobId}/applications`);
   };
 
+  // Show loading state while checking authentication
   if (!user) {
-    return <p>Loading...</p>;
+    return (
+      <DashboardLayout pageTitle="My Jobs">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Don't render content if not recruiter (will redirect)
+  if (user.role !== 'RECRUITER') {
+    return null;
   }
 
   return (
-    <DashboardLayout pageTitle="My Jobs">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">My Jobs</h1>
-        <Button variant="primary" size="md" onClick={handlePostNewVacancy}>
-          POST NEW VACANCY
-        </Button>
-      </div>
+    <DashboardLayout 
+      pageTitle="My Jobs"
+      pageDescription="Manage your job postings and view applications"
+    >
+      {/* Header */}
+      <MyJobsHeader 
+        onPostNewVacancy={handlePostNewVacancy}
+        jobCount={jobs.length}
+      />
 
+      {/* Error State */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <p>{error}</p>
-          <button
-            onClick={fetchJobs}
-            className="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm"
-          >
-            Retry
-          </button>
-        </div>
+        <JobsErrorState 
+          error={error} 
+          onRetry={refetch}
+        />
       )}
 
-      {isLoading ? (
-        <p className="text-center text-gray-500">Loading jobs...</p>
-      ) : jobs.length === 0 ? (
-        <div className="text-center">
-          <p className="text-gray-700">You haven't posted any jobs yet.</p>
-          <Button variant="primary" size="md" onClick={handlePostNewVacancy} className="mt-4">
+      {/* Job List */}
+      <JobList
+        jobs={jobs}
+        onViewApplications={handleViewApplications}
+        onEditJob={handleEditJob}
+        isLoading={isLoading}
+      />
+
+      {/* Empty State Call to Action */}
+      {!isLoading && jobs.length === 0 && !error && (
+        <div className="text-center mt-8">
+          <Button 
+            variant="primary" 
+            size="lg" 
+            onClick={handlePostNewVacancy}
+          >
             Post Your First Job
           </Button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {jobs.map((job) => (
-            <JobCard
-              key={job.id}
-              job={job}
-              onViewApplications={handleViewApplications}
-              onEditJob={handleEditJob}
-            />
-          ))}
+          <p className="text-gray-500 mt-2 text-sm">
+            Start attracting qualified candidates to your company
+          </p>
         </div>
       )}
     </DashboardLayout>

@@ -48,8 +48,8 @@ export default function CandidatesSection({ candidates, isLoading = false }: Can
           <p className="mt-1 text-sm text-gray-500">Candidates will appear here when they apply to your jobs.</p>
           <div className="mt-6">
             <Link
-              href="/recruiter/jobs/post"
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              href="/jobs/post"
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#D6CDFE] hover:bg-[#8168f1] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Post a Job
             </Link>

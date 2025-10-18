@@ -202,6 +202,7 @@ export interface WorkExperience {
 
 // types/job.ts
 export interface Job {
+  application_count:any
   skills: any;
   id: number;
   title: string;

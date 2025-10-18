@@ -1,104 +1,110 @@
+// components/JobCard.tsx (Enhanced for Recruiter)
 import { Job } from '@/types';
-import { formatPostedDate } from '@/utils/dateFormatter';
 
 interface JobCardProps {
   job: Job;
-  onViewApplications: (jobId: number) => void;
-  onEditJob: (jobId: number) => void;
+  onViewApplications?: (jobId: number) => void;
+  onEditJob?: (jobId: number) => void;
+  showStatus?: boolean;
+  showApplicationCount?: boolean;
 }
 
-export default function JobCard({ job, onViewApplications, onEditJob }: JobCardProps) {
+export default function JobCard({ 
+  job, 
+  onViewApplications, 
+  onEditJob,
+  showStatus = false,
+  showApplicationCount = false
+}: JobCardProps) {
+  const getStatusBadge = (isActive: boolean) => {
+    return isActive ? (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        Active
+      </span>
+    ) : (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        Inactive
+      </span>
+    );
+  };
+
+  const formatApplicationCount = (count?: number) => {
+    if (count === undefined) return 'No applications';
+    if (count === 0) return 'No applications yet';
+    if (count === 1) return '1 application';
+    return `${count} applications`;
+  };
+
+  const getExperienceLevel = (level: string) => {
+    const levels: Record<string, string> = {
+      'ENTRY': 'Entry Level',
+      'MID': 'Mid Level',
+      'SENIOR': 'Senior Level',
+      'LEAD': 'Lead'
+    };
+    return levels[level] || level;
+  };
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition">
-      <div className="flex items-start">
-        {job.company_logo ? (
-          <img
-            src={job.company_logo}
-            alt={job.company_name}
-            className="w-10 h-10 rounded-full mr-4 object-cover"
-          />
-        ) : (
-          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 mr-4 flex items-center justify-center">
-            <span className="text-gray-500 text-xs">Logo</span>
-          </div>
-        )}
+    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
+      <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-bold text-gray-900">{job.company_name}</h3>
-              <p className="text-sm text-gray-700">{job.title}</p>
-              <div className="text-xs text-gray-500 mt-1 flex items-center space-x-2">
-                <span>📍 {job.location}</span>
-                <span>•</span>
-                <span>{job.employment_type_display}</span>
-                <span>•</span>
-                <span>{job.work_type_display}</span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1 flex items-center space-x-2">
-                <span>Posted: {formatPostedDate(job.created_at)}</span>
-                <span>•</span>
-                <span>{job.experience_level_display}</span>
-                {job.salary_range && (
-                  <>
-                    <span>•</span>
-                    <span className="text-green-600 font-medium">{job.salary_range}</span>
-                  </>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-1 mt-2">
-                {/* {job.skills_required.slice(0, 3).map((skill) => (
-                  <span
-                    key={skill.id}
-                    className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
-                  >
-                    {skill.name}
-                  </span>
-                ))} */}
-                {/* {job.skills_required.length > 3 && (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                    +{job.skills_required.length - 3} more
-                  </span>
-                )} */}
-              </div>
-            </div>
-            <div className="ml-4 text-right">
-              <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                job.is_active 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {job.is_active ? 'Active' : 'Closed'}
-              </div>
-              {job.closing_date && (
-                <div className="text-xs text-gray-500 mt-1">
-                  Closes: {formatPostedDate(job.closing_date)}
-                </div>
-              )}
-            </div>
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">{job.title}</h3>
+            {showStatus && getStatusBadge(job.is_active)}
           </div>
+          
+          <div className="flex items-center text-sm text-gray-600 mb-3">
+            <span className="font-medium">{job.company_name}</span>
+            {job.location && (
+              <>
+                <span className="mx-2">•</span>
+                <span>{job.location}</span>
+              </>
+            )}
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-3">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {getExperienceLevel(job.experience_level)}
+            </span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              {job.work_type_display?.replace('_', ' ')}
+            </span>
+            {showApplicationCount && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                {formatApplicationCount(job.application_count)}
+              </span>
+            )}
+          </div>
+
+          <p className="text-sm text-gray-600 line-clamp-2">
+            {job.description}
+          </p>
         </div>
-        <div className="flex items-center space-x-2 ml-4">
-          <button
-            onClick={() => onViewApplications(job.id)}
-            className="bg-gray-100 text-gray-700 p-2 rounded-full hover:bg-gray-200 transition"
-            aria-label={`View applications for ${job.title}`}
-            title="View Applications"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => onEditJob(job.id)}
-            className="bg-gray-100 text-gray-700 p-2 rounded-full hover:bg-gray-200 transition"
-            aria-label={`Edit job ${job.title}`}
-            title="Edit Job"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
+      </div>
+
+      <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+        <div className="text-sm text-gray-500">
+          Posted {new Date(job.created_at).toLocaleDateString()}
+        </div>
+        <div className="flex space-x-2">
+          {onViewApplications && (
+            <button
+              onClick={() => onViewApplications(job.id)}
+              className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              View Applications
+            </button>
+          )}
+          {onEditJob && (
+            <button
+              onClick={() => onEditJob(job.id)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Edit Job
+            </button>
+          )}
         </div>
       </div>
     </div>
