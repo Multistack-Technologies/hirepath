@@ -29,21 +29,21 @@ export default function RecruiterDashboard() {
         <QuickAction
           title="Post a Job"
           description="Create a new job posting"
-          href="/recruiter/jobs/post"
+          href="jobs/post"
           icon="📝"
           color="blue"
         />
         <QuickAction
           title="View Applications"
           description="Review candidate applications"
-          href="/recruiter/applications"
+          href="/graduates"
           icon="👥"
           color="green"
         />
         <QuickAction
           title="Analytics"
           description="View performance insights"
-          href="/recruiter/analytics"
+          href="analytics"
           icon="📊"
           color="purple"
         />
