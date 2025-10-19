@@ -25,7 +25,9 @@ export default function CandidateCard({
     <div className={`bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition ${className}`}>
       <div className="flex items-start">
         <Image
-          src="https://via.placeholder.com/40" // Replace with actual avatar URL prop
+        width={0}
+        height={0}
+          src="/default_profile.svg" // Replace with actual avatar URL prop
           alt={name}
           className="w-10 h-10 rounded-full mr-4"
         />
