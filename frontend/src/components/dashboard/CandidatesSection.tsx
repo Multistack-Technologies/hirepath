@@ -57,15 +57,15 @@ export default function CandidatesSection({ candidates, isLoading = false }: Can
         </div>
       ) : (
         <div className="space-y-4">
-          {candidates.map((candidate) => (
+          {candidates.map((candidate: Candidate) => (
             <CandidateCard
-              key={candidate.id}
+              key={candidate.application_id}
               name={`${candidate.first_name} ${candidate.last_name}`}
               jobTitle={candidate.current_job_title || 'Not specified'}
               location={candidate.location || 'Location not specified'}
               postedAgo={candidate.applied_date}
               matchScore={`${candidate.match_score || 0}/100`}
-              onViewProfileClick={() => router.push(`/candidates/${candidate.id}`)}
+              onViewProfileClick={() => router.push(`/candidates/${candidate.application_id}`)}
             //   skills={candidate.skills || []}
             />
           ))}

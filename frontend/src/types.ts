@@ -47,6 +47,7 @@ export interface Application{
 }
 
 export interface Candidates {
+  current_job_title: string;
   id: number;
   first_name: string;
   last_name: string;
@@ -62,20 +63,6 @@ export interface Candidates {
 }
 
 
-
-
-export interface Candidate {
-  skills: Skill[];
-  current_job_title: string;
-  id: number;
-  first_name: string;
-  last_name: string;
-  avatarUrl?: string;
-  location: string;
-  applied_date: string;
-  match_score?: number;
-  total_requirements?: number;
-}
 
 export interface Skill {
   id: number;
@@ -426,4 +413,51 @@ export interface DashboardData {
 export interface AnalyticsDataResponse {
   success: boolean;
   data: DashboardData;
+}
+
+export interface MatchDetails {
+  skills_matched: string[];
+  skills_missing: string[];
+  education_match: {
+    has_required_education: boolean;
+    preferred_courses: string[];
+  };
+  certificate_match: {
+    matched_certificates: string[];
+    missing_certificates: string[];
+  };
+  experience_match: {
+    user_experience_years?: number;
+    job_required_level?: string;
+    match_percentage?: number;
+  };
+  feedback: string[];
+}
+
+export interface Candidate {
+  application_id: number;
+  applicant_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  location: string;
+  current_job_title: string;
+  applied_date: string;
+  match_score: number;
+  match_details: MatchDetails;
+  job_title: string;
+  company_name: string;
+  application_status: string;
+  cover_letter: string | null;
+  notes: string | null;
+  interview_date: string | null;
+}
+
+export interface CandidatesResponse {
+  results: Candidate[];
+  total_count: number;
+  filters_applied: {
+    status: string;
+    min_match_score: string | number;
+  };
 }

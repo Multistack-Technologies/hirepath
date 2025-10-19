@@ -241,7 +241,7 @@ function CompanyProfileRequired() {
           You need to create a company profile before you can post jobs.
         </p>
         <div className="space-x-4">
-          <Button onClick={() => router.push('/recruiter/company')} variant="primary" size="lg">
+          <Button onClick={() => router.push('/profile/company/create')} variant="primary" size="lg">
             Create Company Profile
           </Button>
           <Button onClick={() => router.back()} variant="secondary" size="lg">

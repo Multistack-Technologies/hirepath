@@ -43,7 +43,7 @@ export default function RecruiterDashboard() {
         <QuickAction
           title="Analytics"
           description="View performance insights"
-          href="analytics"
+          href="reports"
           icon="📊"
           color="purple"
         />
