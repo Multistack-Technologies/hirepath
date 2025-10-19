@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from django.db.models import Count, Q, Avg
 from django.shortcuts import get_object_or_404
 
-from accounts import serializers
+from rest_framework import serializers 
 from .models import Application
 from jobs.models import Job
 from .serializers import (

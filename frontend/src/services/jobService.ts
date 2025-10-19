@@ -77,7 +77,7 @@ class JobService {
   }
 
   async applyToJob(jobId: number, coverLetter: string): Promise<void> {
-    await api.post('/applications/', {
+    await api.post('/applications/apply/', {
       job: jobId,
       cover_letter: coverLetter,
     });

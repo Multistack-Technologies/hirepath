@@ -53,19 +53,19 @@ export default function JobDetailPage() {
     setIsApplyModalOpen(true);
   };
 
-  const handleSubmitApplication = async (
-    coverLetter: string
-  ): Promise<boolean> => {
-    if (!job) return false;
+ const handleSubmitApplication = async (coverLetter: string): Promise<boolean> => {
+  if (!job) return false;
 
-    const success = await applyToJob(job.id, coverLetter);
-    if (success) {
-      // Refresh job data to update application count
-      fetchJob();
-      return true;
-    }
+  try {
+    await applyToJob(job.id, coverLetter);
+    // Refresh job data to update application count
+    fetchJob();
+    return true;
+  } catch (error) {
+    console.error('Application failed:', error);
     return false;
-  };
+  }
+};
 
   const getTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
