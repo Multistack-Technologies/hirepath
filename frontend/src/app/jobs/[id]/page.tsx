@@ -1,14 +1,15 @@
+// app/recruiter/jobs/[id]/page.tsx
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import Button from '@/components/Button';
-import { useJobs } from '@/hooks/useJobs';
-import { Job, Candidate } from '@/types';
-import JobDetailsSection from '@/components/JobDetailsSection';
-import CandidatesSection from '@/components/CandidatesSection';
+import JobDetailsHeader from '@/components/jobs/JobDetailsHeader';
+import JobDetailsSection from '@/components/jobs/JobDetailsSection';
+import JobCandidatesSection from '@/components/jobs/JobCandidatesSection';
+import { useJobDetails } from '@/hooks/useJobDetails';
+import JobErrorState from '@/components/jobs/JobErrorState';
 
 export default function JobDetails() {
   const { user } = useAuth();
@@ -16,24 +17,9 @@ export default function JobDetails() {
   const params = useParams();
   const jobId = Number(params.id);
   
-  const { isLoading, error, setError, fetchJobDetails, fetchJobCandidates } = useJobs();
-  const [job, setJob] = useState<Job | null>(null);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const { job, candidates, isLoading, error, refetch } = useJobDetails(jobId);
 
-  const fetchData = async () => {
-    try {
-      const [jobData, candidatesData] = await Promise.all([
-        fetchJobDetails(jobId),
-        fetchJobCandidates(jobId),
-      ]);
-      
-      setJob(jobData);
-      setCandidates(candidatesData);
-    } catch (err) {
-      // Error handled in hook
-    }
-  };
-
+  // Redirect if not authenticated or not recruiter
   useEffect(() => {
     if (!user) {
       router.push('/login');
@@ -41,47 +27,67 @@ export default function JobDetails() {
     }
 
     if (user.role !== 'RECRUITER') {
-      setError("Access Denied. Recruiters only.");
+      router.push('/dashboard');
       return;
     }
+  }, [user, router]);
 
-    if (!isNaN(jobId)) {
-      fetchData();
-    } else {
-      setError("Invalid Job ID");
-    }
-  }, [user, router, jobId]);
+  const handleBack = () => {
+    router.push('/recruiter/jobs');
+  };
 
+  const handleEditJob = () => {
+    router.push(`/recruiter/jobs/edit/${jobId}`);
+  };
+
+  // Show loading state while checking authentication
   if (!user) {
-    return <p>Loading...</p>;
+    return (
+      <DashboardLayout pageTitle="Job Details">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Don't render content if not recruiter (will redirect)
+  if (user.role !== 'RECRUITER') {
+    return null;
   }
 
   return (
-    <DashboardLayout pageTitle="Job Details">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Job Details</h1>
-        <Button variant="secondary" size="md" onClick={() => router.push('/jobs')}>
-          Back to My Jobs
-        </Button>
-      </div>
+    <DashboardLayout 
+      pageTitle="Job Details"
+      pageDescription="View job details and manage candidates"
+    >
+      {/* Header */}
+      <JobDetailsHeader 
+        jobTitle={job?.title}
+        onBack={handleBack}
+        onEdit={handleEditJob}
+        showEdit={!!job}
+      />
 
+      {/* Error State */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <p>{error}</p>
-          <button
-            onClick={fetchData}
-            className="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm"
-          >
-            Retry
-          </button>
-        </div>
+        <JobErrorState 
+          error={error} 
+          onRetry={refetch}
+        />
       )}
 
-      <JobDetailsSection job={job} isLoading={isLoading} />
-      <CandidatesSection 
-        candidates={candidates} 
+      {/* Job Details */}
+      <JobDetailsSection 
+        job={job} 
         isLoading={isLoading}
+      />
+
+      {/* Candidates Section */}
+      <JobCandidatesSection 
+        candidates={candidates}
         jobId={jobId}
+        isLoading={isLoading}
       />
     </DashboardLayout>
   );

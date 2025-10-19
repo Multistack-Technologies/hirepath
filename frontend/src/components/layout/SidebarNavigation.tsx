@@ -38,13 +38,19 @@ export default function SidebarNavigation({ isMobileOpen, onCloseMobile }: Sideb
       badge: null,
     },
     {
+       href: '/RecruterJob',
+    icon: <BriefcaseIcon className="h-5 w-5" />,
+    label: 'Recruiter',
+    badge: null, 
+    },
+    {
       href: '/recruiter/candidates',
       icon: <UserIcon className="h-5 w-5" />,
       label: 'Candidates',
       badge: null,
     },
     {
-      href: '/analytics',
+      href: '/reports',
       icon: <ChartBarIcon className="h-5 w-5" />,
       label: 'Analytics',
       badge: null,
@@ -59,7 +65,7 @@ export default function SidebarNavigation({ isMobileOpen, onCloseMobile }: Sideb
       badge: null,
     },
     {
-      href: '/jobs',
+      href: '/Myjobs',
       icon: <MagnifyingGlassIcon className="h-5 w-5" />,
       label: 'Find Jobs',
       badge: null,

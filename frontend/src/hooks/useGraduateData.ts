@@ -38,13 +38,13 @@ export function useGraduateData(): UseGraduateDataReturn {
         api.get('/applications/graduate/stats/'),
         api.get<{ results: Job[] }>('/jobs/'),
       ]);
-
+      
       if (statsResponse.data) {
         setStats(statsResponse.data);
       }
 
-      if (jobsResponse.data?.results) {
-        setJobs(jobsResponse.data.results);
+      if (jobsResponse.data && Array.isArray(jobsResponse.data)) {
+        setJobs(jobsResponse.data);
       }
     } catch (err: any) {
       console.error('Error fetching graduate data:', err);

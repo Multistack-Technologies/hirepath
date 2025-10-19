@@ -37,7 +37,7 @@ export default function MyJobs() {
   };
 
   const handleViewApplications = (jobId: number) => {
-    router.push(`/jobs/${jobId}/applications`);
+    router.push(`/jobs/${jobId}`);
   };
 
   // Show loading state while checking authentication

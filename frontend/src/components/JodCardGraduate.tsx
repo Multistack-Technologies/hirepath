@@ -50,7 +50,7 @@ export default function JobCardGraduate({
               {getExperienceLevel(job.experience_level)}
             </span>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              {job.work_type.replace('_', ' ')}
+              {job.work_type_display.replace('_', ' ')}
             </span>
             {job.skills?.slice(0, 3).map((skill: { name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }, index: Key | null | undefined) => (
               <span 

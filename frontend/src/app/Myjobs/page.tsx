@@ -9,7 +9,7 @@ import FindWorkLoading from '@/components/find-work/FindWorkLoading';
 
 
 export default function FindWork() {
-  const { user } = useAuth();
+  const { user } = useAuth(); 
   const router = useRouter();
 
   useEffect(() => {

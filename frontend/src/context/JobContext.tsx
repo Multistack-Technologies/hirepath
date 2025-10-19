@@ -120,7 +120,7 @@ export function JobProvider({ children }: { children: ReactNode }) {
   // Fetch user's jobs (for recruiters) or applications (for graduates)
   const fetchUserJobs = async () => {
     try {
-      const response = await api.get('/jobs/my-jobs/');
+      const response = await api.get('/jobs/me/');
       setUserJobs(response.data.results || response.data);
     } catch (error: any) {
       console.error('Error fetching user jobs:', error);
