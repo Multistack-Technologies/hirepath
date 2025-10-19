@@ -46,6 +46,8 @@ export const useJobPost = () => {
   };
 
   const createJob = async (jobData: JobCreateData): Promise<boolean> => {
+    console.log(jobData)
+   
     if (!company) {
       addToast({
         type: 'error',

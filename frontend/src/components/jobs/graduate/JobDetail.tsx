@@ -1,17 +1,17 @@
-// components/find-work/JobDetail.tsx
+// components/jobs/JobDetail.tsx
 import { Job } from '@/types';
 import Button from '@/components/Button';
-import GroupText from '@/components/GroupText';
 
 interface JobDetailProps {
   job: Job | null;
   onApply: (jobId: number) => void;
+  isApplying?: boolean;
 }
 
-export default function JobDetail({ job, onApply }: JobDetailProps) {
+export default function JobDetail({ job, onApply, isApplying = false }: JobDetailProps) {
   if (!job) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">👆</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Select a Job</h3>
@@ -34,12 +34,15 @@ export default function JobDetail({ job, onApply }: JobDetailProps) {
     return `${Math.floor(diffDays / 30)} months ago`;
   };
 
+  const skills = job.skills_required || [];
+  const companyInitial = job.company_name?.charAt(0) || 'C';
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-6">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-6">
       {/* Company Header */}
       <div className="flex items-center space-x-4 mb-6">
         <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
-          {job.company_name?.charAt(0) || 'C'}
+          {companyInitial}
         </div>
         <div>
           <h2 className="text-xl font-bold text-gray-900">{job.company_name}</h2>
@@ -50,8 +53,7 @@ export default function JobDetail({ job, onApply }: JobDetailProps) {
       {/* Job Stats */}
       <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
         <div className="text-center">
-          {/* <div className="text-2xl font-bold text-gray-900">{job.views_count || 0}</div> */}
-          <div className="text-sm text-gray-500">Views</div>
+         
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-gray-900">{job.application_count || 0}</div>
@@ -72,7 +74,7 @@ export default function JobDetail({ job, onApply }: JobDetailProps) {
         </div>
 
         {/* Salary */}
-        {job.salary_range && (
+        {job.salary_range && job.salary_range !== 'Salary not specified' && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="text-lg font-bold text-green-800 text-center">
               {job.salary_range}
@@ -83,19 +85,19 @@ export default function JobDetail({ job, onApply }: JobDetailProps) {
         {/* Description */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
-          <div className="prose prose-sm text-gray-700">
+          <div className="prose prose-sm text-gray-700 max-w-none">
             {job.description || 'No description available.'}
           </div>
         </div>
 
         {/* Requirements */}
-        {job.skills_required && job.skills_required.length > 0 && (
+        {skills.length > 0 && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Required Skills</h3>
             <div className="flex flex-wrap gap-2">
-              {job.skills_required.map((skill, index) => (
+              {skills.map((skill) => (
                 <span
-                  key={index}
+                  key={skill.id}
                   className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full border border-blue-200"
                 >
                   {skill.name}
@@ -116,6 +118,19 @@ export default function JobDetail({ job, onApply }: JobDetailProps) {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Experience Level</h3>
           <p className="text-gray-700">{job.experience_level_display}</p>
         </div>
+
+        {/* Closing Date */}
+        {job.closing_date && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Closing Date</h3>
+            <p className="text-gray-700">
+              {new Date(job.closing_date).toLocaleDateString()} 
+              {job.days_remaining !== null && (
+                <span className="text-orange-600 ml-2">({job.days_remaining} days remaining)</span>
+              )}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Apply Button */}
@@ -124,9 +139,11 @@ export default function JobDetail({ job, onApply }: JobDetailProps) {
           variant="primary"
           size="lg"
           onClick={() => onApply(job.id)}
+          isLoading={isApplying}
+          disabled={isApplying}
           className="w-full py-3 text-lg font-semibold"
         >
-          APPLY NOW
+          {isApplying ? 'Applying...' : 'APPLY NOW'}
         </Button>
       </div>
     </div>

@@ -99,7 +99,7 @@ export function SkillProvider({ children }: { children: ReactNode }) {
     if (popularSkills.length > 0 && hasFetchedInitialData.current) return;
     
     try {
-      const response = await api.get('/skills/popular/');
+      const response = await api.get('/skills/');
       setPopularSkills(response.data.results || response.data);
     } catch (error: any) {
       console.error('Error fetching popular skills:', error);

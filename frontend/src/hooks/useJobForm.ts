@@ -1,139 +1,61 @@
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { jobsService, transformJobFormData } from '@/lib/api/jobsService';
-import { JobFormData } from '@/types';
-import { useLayout } from '@/context/LayoutContext';
+// hooks/useJobForm.ts
+import { useState } from 'react';
+import { JobCreateData } from '@/types';
 
-export const useJobForm = () => {
-  const router = useRouter();
-  const { company, isCompanyLoading, companyError } = useLayout();
-  
-  const [formData, setFormData] = useState<JobFormData>({
-    title: '',
-    description: '',
-    location: '',
-    employment_type: 'FULL_TIME',
-    work_type: 'ONSITE',
-    experience_level: 'MID',
-    skills_required_ids: [],
-    certificates_preferred_ids: [],
-    courses_preferred_ids: [],
-  });
-  
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+export const useJobForm = (initialData: JobCreateData) => {
+  const [formData, setFormData] = useState<JobCreateData>(initialData);
 
-  const handleChange = useCallback((
+  const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value, type } = e.target;
-    
-    // Handle number inputs
-    if (type === 'number') {
-      setFormData((prev) => ({ ...prev, [name]: value ? Number(value) : undefined }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  }, []);
-
-  const handleAddRequirements = useCallback((requirementIds: number[]) => {
-    setFormData((prev) => ({
+    const { name, value } = e.target;
+    setFormData(prev => ({
       ...prev,
-      skills_required_ids: requirementIds,
+      [name]: value
     }));
-  }, []);
+  };
 
-  const validateForm = useCallback((): boolean => {
-    if (!formData.title?.trim()) {
-      setError("Please provide a Job Title.");
-      return false;
-    }
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value === '' ? undefined : parseInt(value)
+    }));
+  };
 
-    if (!formData.location?.trim()) {
-      setError("Please provide a Location.");
-      return false;
-    }
+  const updateSkills = (skillIds: number[]) => {
+    setFormData(prev => ({
+      ...prev,
+      skills_required_ids: skillIds
+    }));
+  };
 
-    if (!formData.description?.trim()) {
-      setError("Please provide a Description.");
-      return false;
-    }
+  const updateDegrees = (degreeIds: number[]) => {
+    setFormData(prev => ({
+      ...prev,
+      courses_preferred_ids: degreeIds
+    }));
+  };
 
-    if (isCompanyLoading) {
-      setError("Please wait, still loading company information.");
-      return false;
-    }
+  const updateCertificateProviders = (providerIds: number[]) => {
+    setFormData(prev => ({
+      ...prev,
+      certificates_preferred_ids: providerIds
+    }));
+  };
 
-    if (!company) {
-      setError(
-        companyError ||
-        "Company profile is required. Please ensure your company profile is set up."
-      );
-      return false;
-    }
-
-    return true;
-  }, [formData, isCompanyLoading, company, companyError]);
-
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    try {
-      const jobPayload = transformJobFormData(formData, company!.id);
-      await jobsService.createJob(jobPayload);
-      
-      setSuccess("Job vacancy created successfully!");
-
-      setTimeout(() => {
-        router.push("/jobs");
-      }, 1500);
-    } catch (err: any) {
-      console.error("Create error:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        err.message ||
-        "Failed to create job vacancy. Please try again.";
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [formData, company, router, validateForm]);
-
-  const resetForm = useCallback(() => {
-    setFormData({
-      title: '',
-      description: '',
-      location: '',
-      employment_type: 'FULL_TIME',
-      work_type: 'ONSITE',
-      experience_level: 'MID',
-      skills_required_ids: [],
-      certificates_preferred_ids: [],
-      courses_preferred_ids: [],
-    });
-    setError(null);
-    setSuccess(null);
-  }, []);
+  const resetForm = () => {
+    setFormData(initialData);
+  };
 
   return {
     formData,
-    error,
-    success,
-    isLoading,
-    company,
-    isCompanyLoading,
-    companyError,
     handleChange,
-    handleAddRequirements,
-    handleSubmit,
+    handleNumberChange,
+    updateSkills,
+    updateDegrees,
+    updateCertificateProviders,
     resetForm,
-    setFormData,
-    setError,
+    setFormData
   };
 };

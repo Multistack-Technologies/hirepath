@@ -71,13 +71,18 @@ class MyJobListView(generics.ListAPIView):
         user = self.request.user
         return Job.objects.filter(created_by=user).order_by("-created_at")
 
+# views.py
 class JobDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Job.objects.filter(created_by=user)
+        # For GET requests, return all active jobs
+        # For PUT/PATCH/DELETE, return only user's jobs
+        if self.request.method == 'GET':
+            return Job.objects.filter(is_active=True)
+        else:
+            return Job.objects.filter(created_by=self.request.user)
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:
@@ -89,6 +94,17 @@ class JobDetailView(generics.RetrieveUpdateDestroyAPIView):
         obj = get_object_or_404(queryset, pk=self.kwargs['pk'])
         return obj
 
+    def check_permissions(self, request):
+        # For GET requests, allow any authenticated user
+        if request.method == 'GET':
+            return super().check_permissions(request)
+        # For other methods, check if user owns the job
+        else:
+            super().check_permissions(request)
+            obj = self.get_object()
+            if obj.created_by != request.user:
+                self.permission_denied(request, message="You can only edit your own jobs.")
+                
 @api_view(["GET"])
 @permission_classes([permissions.AllowAny])
 def active_jobs(request):

@@ -63,8 +63,8 @@ export default function Sidebar({
               onClick={handleItemClick}
             >
             
-              <h1 className="text-3xl capitalize font-bold text-[#7551FF]">
-                Hire<span className="text-[#130160]">Path</span>
+              <h1 className="text-3xl !capitalize font-extrabold text-[#7551FF]">
+                HIRE-<span className="text-[#130160]">PATH</span>
               </h1>
             </Link>
             

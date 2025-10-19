@@ -24,10 +24,6 @@ class JobService {
   }
 
   // Get active jobs only
-  async getActiveJobs(): Promise<Job[]> {
-    const response = await api.get<Job[]>('/jobs/active/');
-    return response.data;
-  }
 
   // Get current user's jobs
   async getMyJobs(): Promise<Job[]> {
@@ -37,15 +33,20 @@ class JobService {
 
   // Create a new job
   async createJob(jobData: JobCreateData): Promise<Job> {
-    const response = await api.post<Job>('/jobs/', jobData);
+       // Ensure all array fields are properly formatted
+       console.log(jobData)
+    const formattedData = {
+      ...jobData,
+      skills_required_ids: jobData.skills_required_ids || [],
+      certificates_preferred_ids: jobData.certificates_preferred_ids || [],
+      courses_preferred_ids: jobData.courses_preferred_ids || [],
+    };
+    const response = await api.post<Job>('/jobs/', formattedData);
     return response.data;
   }
 
   // Get job by ID
-  async getJobById(id: number): Promise<Job> {
-    const response = await api.get<Job>(`/jobs/${id}/`);
-    return response.data;
-  }
+
 
   // Update job
   async updateJob(id: number, jobData: Partial<JobCreateData>): Promise<Job> {
@@ -74,6 +75,39 @@ class JobService {
   getErrorMessage(error: any): string {
     return apiHelper.getErrorMessage(error);
   }
+
+  async applyToJob(jobId: number, coverLetter: string): Promise<void> {
+    await api.post('/applications/', {
+      job: jobId,
+      cover_letter: coverLetter,
+    });
+  }
+
+   async getJobById(id: number): Promise<Job> {
+    const response = await api.get<Job>(`/jobs/${id}/`);
+    const job = response.data;
+    
+    // Ensure arrays are always defined
+    return {
+      ...job,
+      skills_required: job.skills_required || [],
+      certificates_preferred: job.certificates_preferred || [],
+      courses_preferred: job.courses_preferred || [],
+    };
+  }
+
+  async getActiveJobs(): Promise<Job[]> {
+    const response = await api.get<Job[]>('/jobs/active/');
+    return (response.data || []).map(job => ({
+      ...job,
+      skills_required: job.skills_required || [],
+      certificates_preferred: job.certificates_preferred || [],
+      courses_preferred: job.courses_preferred || [],
+    }));
+  }
+
+
+
 }
 
 export const jobService = new JobService();

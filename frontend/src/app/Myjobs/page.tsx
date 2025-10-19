@@ -1,20 +1,19 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import FindWorkContent from '@/components/find-work/FindWorkContent';
-import FindWorkLoading from '@/components/find-work/FindWorkLoading';
-
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import FindWorkContent from "@/components/find-work/FindWorkContent";
+import FindWorkLoading from "@/components/find-work/FindWorkLoading";
 
 export default function FindWork() {
-  const { user } = useAuth(); 
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, router]);
 
@@ -23,7 +22,10 @@ export default function FindWork() {
   }
 
   return (
-    <DashboardLayout pageTitle="Find Work">
+    <DashboardLayout
+      pageTitle="Find Work"
+      pageDescription="Browse available job opportunities and find your perfect match"
+    >
       <FindWorkContent />
     </DashboardLayout>
   );

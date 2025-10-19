@@ -110,7 +110,7 @@ export function JobProvider({ children }: { children: ReactNode }) {
   // Fetch featured jobs
   const fetchFeaturedJobs = async () => {
     try {
-      const response = await api.get('/jobs/featured/');
+      const response = await api.get('/jobs/');
       setFeaturedJobs(response.data.results || response.data);
     } catch (error: any) {
       console.error('Error fetching featured jobs:', error);

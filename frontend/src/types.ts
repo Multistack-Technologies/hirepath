@@ -65,7 +65,7 @@ export interface Candidates {
 
 
 export interface Candidate {
-  skills: never[];
+  skills: Skill[];
   current_job_title: string;
   id: number;
   first_name: string;
@@ -155,6 +155,7 @@ export interface University {
 }
 
 export interface Degree {
+  issuer_name: any;
   id: number;
   name: string;
   // ... other degree fields
@@ -223,13 +224,16 @@ export interface Job {
   closing_date: string | null;
   is_active: boolean;
   days_remaining: number | null;
-  skills_required: Skill[];
-  certificates_preferred: CertificateProvider[];
-  courses_preferred: Degree[];
+  skills_required?: Skill[];
+  certificates_preferred?: CertificateProvider[];
+  courses_preferred?: Degree[];
   created_by: number;
   created_at: string;
   updated_at: string;
   skills_count?: number;
+  department?: string;
+  posted_date?: string;
+  remote_ok?: boolean;
 }
 
 export interface JobCreateData {
@@ -248,13 +252,14 @@ export interface JobCreateData {
 }
 
 export interface JobFilters {
-  employment_type?: string;
-  work_type?: string;
-  experience_level?: string;
-  skills?: string[];
-  location?: string;
-  company?: string;
   search?: string;
+  employment_type?: string[];
+  work_type?: string[];
+  experience_level?: string[];
+  location?: string;
+  skills?: number[];
+  min_salary?: number;
+  max_salary?: number;
 }
 
 export interface JobStats {

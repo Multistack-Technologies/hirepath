@@ -53,6 +53,8 @@ export const useJobs = () => {
           applied_date: app.applied_date,
           match_score: app.match_score || 0,
           total_requirements: app.total_requirements || 0,
+          current_job_title :"",
+          skills :[]
         }));
       }
       return [];

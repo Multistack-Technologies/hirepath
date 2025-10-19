@@ -1,7 +1,7 @@
+// components/find-work/FindWorkContent.tsx
 import { useState, useEffect } from 'react';
 import { Job } from '@/types';
 import api from '@/lib/api';
-
 import ApplyPopupModal from '@/components/ApplyPopupModal';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -30,17 +30,13 @@ export default function FindWorkContent() {
     setError(null);
 
     try {
-      const params = new URLSearchParams();
-      if (searchQuery) params.append('q', searchQuery);
-      selectedSkills.forEach((skill) => params.append('skill', skill));
-      params.append('sort', sortOption);
-
-      const response = await api.get<Job[]>(`/jobs/?${params.toString()}`);
-
+      const response = await api.get<Job[]>('/jobs/active/');
+      
       if (response.data && Array.isArray(response.data)) {
-        setJobs(response.data);
-        if (response.data.length > 0 && !selectedJob) {
-          setSelectedJob(response.data[0]);
+        const jobsData = response.data;
+        setJobs(jobsData);
+        if (jobsData.length > 0 && !selectedJob) {
+          setSelectedJob(jobsData[0]);
         }
       } else {
         setError('Failed to load jobs: Unexpected response format.');
@@ -58,27 +54,65 @@ export default function FindWorkContent() {
   };
 
   const handleApply = (jobId: number) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     openApplyModal();
   };
 
   const handleApplicationSuccess = (shortLetter: string) => {
     console.log('Application submitted successfully!', shortLetter);
     setApplicationSuccess(true);
-    router.push('/jobs');
+    setIsApplyModalOpen(false);
+    // Refresh jobs to update application counts
+    fetchJobs();
   };
 
   const openApplyModal = () => setIsApplyModalOpen(true);
   const closeApplyModal = () => setIsApplyModalOpen(false);
 
+  // Filter jobs based on search and skills
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = searchQuery === '' || 
+      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesSkills = selectedSkills.length === 0 || 
+      selectedSkills.some(skill => 
+        job.skills_required?.some(jobSkill => 
+          jobSkill.name.toLowerCase().includes(skill.toLowerCase())
+        )
+      );
+    
+    return matchesSearch && matchesSkills;
+  });
+
+  // Sort jobs
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    if (sortOption === 'newest') {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    } else {
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    }
+  });
+
   useEffect(() => {
     fetchJobs();
-  }, [searchQuery, selectedSkills, sortOption]);
+  }, []);
 
   if (isLoading) return <FindWorkLoading />;
   if (error) return <FindWorkError message={error} onRetry={fetchJobs} />;
 
   return (
-    <>
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Find Work</h1>
+        <p className="text-gray-600 mt-2">Discover your next career opportunity</p>
+      </div>
+
       <SearchFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -99,15 +133,24 @@ export default function FindWorkContent() {
         }}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Job List - 2/3 width */}
         <div className="lg:col-span-2">
-          <JobList
-            jobs={jobs}
-            selectedJob={selectedJob}
-            onSelectJob={handleSelectJob}
-          />
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Available Jobs ({sortedJobs.length})
+              </h2>
+            </div>
+            <JobList
+              jobs={sortedJobs}
+              selectedJob={selectedJob}
+              onSelectJob={handleSelectJob}
+            />
+          </div>
         </div>
         
+        {/* Job Detail - 1/3 width */}
         <div className="lg:col-span-1">
           <JobDetail
             job={selectedJob}
@@ -123,8 +166,10 @@ export default function FindWorkContent() {
           onApplySuccess={handleApplicationSuccess}
           userEmail={user?.email || ''}
           jobId={selectedJob.id}
+          // jobTitle={selectedJob.title}
+          // companyName={selectedJob.company_name}
         />
       )}
-    </>
+    </div>
   );
 }
