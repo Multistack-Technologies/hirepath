@@ -62,7 +62,7 @@ export default function CandidatesSection({ candidates, isLoading = false }: Can
               key={candidate.application_id}
               name={`${candidate.first_name} ${candidate.last_name}`}
               jobTitle={candidate.current_job_title || 'Not specified'}
-              location={candidate.location || 'Location not specified'}
+              location={candidate.location.city || 'Location not specified'}
               postedAgo={candidate.applied_date}
               matchScore={`${candidate.match_score || 0}/100`}
               onViewProfileClick={() => router.push(`/candidates/${candidate.application_id}`)}

@@ -442,7 +442,7 @@ export interface Candidate {
   first_name: string;
   last_name: string;
   email: string;
-  location: string;
+  location: any;
   current_job_title: string;
   applied_date: string;
   match_score: number;
