@@ -22,7 +22,7 @@ export default function CandidatesSection({ candidates, isLoading, jobId }: Cand
       ) : (
         <div className="space-y-4">
           {candidates.map((candidate) => (
-            <CandidateCard key={candidate.id} candidate={candidate} jobId={jobId} />
+            <CandidateCard key={candidate.applicant_id} candidate={candidate} jobId={jobId} />
           ))}
         </div>
       )}
@@ -46,7 +46,7 @@ function CandidateCard({ candidate, jobId }: { candidate: Candidate; jobId: numb
             <div>
               <Link
                 href={{
-                  pathname: `/candidates/${candidate.id}`,
+                  pathname: `/candidates/${candidate.applicant_id}`,
                   query: { jobId: jobId.toString() }
                 }}
                 className="font-bold text-gray-900 hover:text-indigo-600"

@@ -44,18 +44,7 @@ export const useJobs = () => {
     try {
       const response = await jobsService.getJobApplications(jobId);
       if (response.data?.results) {
-        return response.data.results.map(app => ({
-          id: app.candidate.id,
-          first_name: app.candidate.first_name,
-          last_name: app.candidate.last_name,
-          avatarUrl: app.candidate.avatarUrl,
-          location: app.candidate.location || "N/A",
-          applied_date: app.applied_date,
-          match_score: app.match_score || 0,
-          total_requirements: app.total_requirements || 0,
-          current_job_title :"",
-          skills :[]
-        }));
+        return response.data.results
       }
       return [];
     } catch (err: any) {

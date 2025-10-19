@@ -435,6 +435,8 @@ export interface MatchDetails {
 }
 
 export interface Candidate {
+  total_requirements: undefined;
+  avatarUrl: string;
   application_id: number;
   applicant_id: number;
   first_name: string;
