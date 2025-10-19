@@ -1,16 +1,12 @@
 // app/recruiter/jobs/page.tsx
 'use client';
 import { useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/Button';
-import { useToast } from '@/context/ToastContext';
 import { useJobs } from '@/context/JobContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 
 export default function RecruiterJobsPage() {
-  const searchParams = useSearchParams();
-  const { addToast } = useToast();
   const { userJobs, fetchUserJobs, isLoading } = useJobs();
 
   // Header action button for posting new job
@@ -22,17 +18,6 @@ export default function RecruiterJobsPage() {
     </Link>
   );
 
-  useEffect(() => {
-    if (searchParams.get('created') === 'true') {
-      addToast({
-        type: 'success',
-        title: 'Job Created!',
-        message: 'Your job has been posted successfully.',
-      });
-      // Remove the query parameter
-      window.history.replaceState({}, '', '/recruiter/jobs');
-    }
-  }, [searchParams, addToast]);
 
   useEffect(() => {
     fetchUserJobs();

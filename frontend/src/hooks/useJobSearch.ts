@@ -43,8 +43,8 @@ export const useJobSearch = () => {
       filtered = filtered.filter(job =>
         job.title.toLowerCase().includes(searchLower) ||
         job.company_name.toLowerCase().includes(searchLower) ||
-        job.description.toLowerCase().includes(searchLower) ||
-        job.skills_required.some(skill => skill.name.toLowerCase().includes(searchLower))
+        job.description.toLowerCase().includes(searchLower)
+      //  job.skills_required.some(skill => skill.name.toLowerCase().includes(searchLower))
       );
     }
 

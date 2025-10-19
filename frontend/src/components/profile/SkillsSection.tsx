@@ -117,8 +117,8 @@ export default function SkillsSection({ onSkillsUpdate }: SkillsSectionProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSkillsAdded={handleSkillsAdded}
-        existingSkills={skills}
-      />
+        existingSkills={skills} 
+         />
     </>
   );
 }

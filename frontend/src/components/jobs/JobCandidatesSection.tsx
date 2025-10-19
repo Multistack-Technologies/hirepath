@@ -58,15 +58,15 @@ export default function JobCandidatesSection({
         </div>
       ) : (
         <div className="space-y-4">
-          {candidates.map((candidate) => (
+          {/* {candidates.map((candidate) => (
             <CandidateCard
               key={candidate.id}
-            //   candidate={candidate}
+              candidate={candidate}
               onViewProfile={() => handleViewCandidate(candidate.id)}
               showMatchScore
               showAppliedDate
             />
-          ))}
+          ))} */}
         </div>
       )}
     </section>

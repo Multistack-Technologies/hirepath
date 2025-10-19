@@ -9,7 +9,6 @@ interface AddSkillsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSkillsAdded: (skills: Skill[]) => void;
-  onAddSkill: (skill: Skill) => Promise<boolean>;
   existingSkills: Skill[];
 }
 
@@ -17,7 +16,6 @@ export default function AddSkillsModal({
   isOpen, 
   onClose, 
   onSkillsAdded,
-  onAddSkill,
   existingSkills = [] 
 }: AddSkillsModalProps) {
   const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
@@ -47,20 +45,6 @@ export default function AddSkillsModal({
     }
   };
 
-  // Add single skill
-  const handleAddSkill = async (skill: Skill) => {
-    setAddingSkill(skill.id);
-    try {
-      const success = await onAddSkill(skill);
-      if (success) {
-        setSelectedSkills(prev => [...prev, skill]);
-      }
-    } catch (error) {
-      console.error('Failed to add skill:', error);
-    } finally {
-      setAddingSkill(null);
-    }
-  };
 
   // Bulk save all selected skills
   const handleSaveAll = async () => {
@@ -137,22 +121,7 @@ export default function AddSkillsModal({
                   key={skill.id}
                   className="p-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-between"
                 >
-                  <span className="text-sm font-medium text-gray-900">
-                    {skill.name}
-                  </span>
-                  
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handleAddSkill(skill)}
-                    disabled={addingSkill === skill.id}
-                  >
-                    {addingSkill === skill.id ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      'Add'
-                    )}
-                  </Button>
+                
                 </div>
               ))}
             </div>
