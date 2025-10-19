@@ -135,7 +135,7 @@ export default function CertificateSection({ profile }: CertificateSectionProps)
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-4">
                     <div className="text-xl font-semibold text-purple-700 flex space-x-1 items-center">   <FaCertificate  className="w-6 h-6" />
-                    <h2>Education</h2></div>
+                    <h2>Certificates</h2></div>
           <Button variant="secondary" size="md" onClick={handleAddCertificate}>
             + ADD CERTIFICATE
           </Button>
