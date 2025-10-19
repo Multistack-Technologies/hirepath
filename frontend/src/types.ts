@@ -333,3 +333,97 @@ export interface SelectableItem {
   name: string;
   [key: string]: any; // For additional properties
 }
+
+
+// types/analytics.ts
+export interface Report {
+  id: number;
+  title: string;
+  report_type: string;
+  description: string;
+  date_range_start: string;
+  date_range_end: string;
+  filters_applied: any;
+  report_data: any;
+  generated_at: string;
+  last_accessed: string;
+  file_url?: string;
+}
+
+export interface Export {
+  id: number;
+  export_type: string;
+  format: string;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  file_url?: string;
+  created_at: string;
+  completed_at?: string;
+}
+
+export interface GenerateReportData {
+  report_type: string;
+  title: string;
+  date_range_start: string;
+  date_range_end: string;
+  filters?: any;
+  description?: string;
+}
+
+export interface ExportRequestData {
+  export_type: string;
+  format: string;
+  filters?: any;
+  date_range_start?: string;
+  date_range_end?: string;
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+// Constants
+export const REPORT_TYPES = [
+  { value: 'APPLICATION_ANALYSIS', label: 'Application Analysis' },
+  { value: 'CANDIDATE_PIPELINE', label: 'Candidate Pipeline' },
+  { value: 'TIME_TO_HIRE', label: 'Time to Hire' },
+  { value: 'SOURCE_ANALYSIS', label: 'Source Analysis' },
+  { value: 'SKILL_GAP_ANALYSIS', label: 'Skill Gap Analysis' },
+] as const;
+
+export const EXPORT_TYPES = [
+  { value: 'APPLICATIONS', label: 'Applications' },
+  { value: 'CANDIDATES', label: 'Candidates' },
+  { value: 'JOBS', label: 'Jobs' },
+  { value: 'ANALYTICS', label: 'Analytics' },
+] as const;
+
+export const EXPORT_FORMATS = [
+  { value: 'EXCEL', label: 'Excel' },
+  { value: 'CSV', label: 'CSV' },
+  { value: 'PDF', label: 'PDF' },
+] as const;
+
+export interface DashboardData {
+  period: string;
+  total_jobs: number;
+  active_jobs: number;
+  total_applications: number;
+  applications_trend: Array<{ date: string; count: number }>;
+  conversion_rate: number;
+  average_match_score: number;
+  top_performing_jobs: Array<{ title: string; applications: number; match_score: number }>;
+  quick_stats: {
+    applications_today: number;
+    pending_review: number;
+    interviews_scheduled: number;
+    new_hires: number;
+  };
+}
+
+export interface AnalyticsDataResponse {
+  success: boolean;
+  data: DashboardData;
+}

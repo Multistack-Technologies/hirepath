@@ -4,7 +4,7 @@ import React, { ButtonHTMLAttributes } from 'react';
 // Define the props for our Button component
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode; // Content inside the button (e.g., text)
-  variant?: 'primary' | 'secondary' | 'danger'; // Different styles
+  variant?: 'primary' | 'secondary' | 'danger'|'tertiary'; // Different styles
   size?: 'sm' | 'md' | 'lg'; // Different sizes
   isLoading?: boolean; // Show loading state
   className?: string; // Allow additional Tailwind classes
