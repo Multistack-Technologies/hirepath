@@ -221,7 +221,7 @@ export default function CandidateProfile() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="flex items-center gap-3">
             <Link
-              href={jobIdFromQuery ? `/jobs/${jobIdFromQuery}` : '/recruiter/candidates'}
+              href={jobIdFromQuery ? `/jobs/${jobIdFromQuery}` : '/candidates'}
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition-colors group text-sm"
             >
               <ArrowLeftIcon className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
