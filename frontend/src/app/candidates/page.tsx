@@ -22,7 +22,10 @@ import {
   XMarkIcon,
   SparklesIcon,
   BuildingOfficeIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  DocumentTextIcon,
+  LightBulbIcon,
+  AcademicCapIcon
 } from "@heroicons/react/24/outline";
 
 interface Candidate {
@@ -207,6 +210,7 @@ export default function CandidatesList() {
     if (score >= 80) return 'text-green-600 bg-green-100 border-green-200';
     if (score >= 60) return 'text-blue-600 bg-blue-100 border-blue-200';
     if (score >= 40) return 'text-yellow-600 bg-yellow-100 border-yellow-200';
+    if (score >= 20) return 'text-orange-600 bg-orange-100 border-orange-200';
     return 'text-red-600 bg-red-100 border-red-200';
   };
 
@@ -270,7 +274,7 @@ export default function CandidatesList() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={()=>fetchCandidates}
+              onClick={()=>fetchCandidates()}
               icon={<ArrowPathIcon className="w-4 h-4" />}
             >
               Refresh
@@ -285,23 +289,27 @@ export default function CandidatesList() {
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-xs text-gray-600 mt-1">Total Candidates</div>
+        {/* Stats Overview - Enhanced with better styling */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+          <div className="text-center">
+            <div className="text-lg font-bold text-gray-900">{stats.total}</div>
+            <div className="text-xs text-gray-600 mt-1">Total</div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-            <div className="text-xs text-gray-600 mt-1">Pending Review</div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-yellow-600">{stats.pending}</div>
+            <div className="text-xs text-gray-600 mt-1">Pending</div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.shortlisted}</div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-green-600">{stats.shortlisted}</div>
             <div className="text-xs text-gray-600 mt-1">Shortlisted</div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.excellent}</div>
-            <div className="text-xs text-gray-600 mt-1">Excellent Matches</div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-blue-600">{stats.excellent}</div>
+            <div className="text-xs text-gray-600 mt-1">Excellent</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-purple-600">{stats.good}</div>
+            <div className="text-xs text-gray-600 mt-1">Good</div>
           </div>
         </div>
 
@@ -413,7 +421,7 @@ export default function CandidatesList() {
           </div>
         </div>
 
-        {/* Candidates List */}
+        {/* Candidates List - Mixed Design */}
         {isLoading && candidates.length === 0 ? (
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
@@ -457,15 +465,28 @@ export default function CandidatesList() {
           </div>
         ) : (
           <>
+            {/* Enhanced Header with Sort Info */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm text-gray-600">
+                Showing {filteredCandidates.length} candidate{filteredCandidates.length !== 1 ? 's' : ''}
+              </div>
+              {filteredCandidates.length > 0 && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                  <SparklesIcon className="w-4 h-4 text-purple-500" />
+                  <span>Sorted by match score</span>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-4">
               {filteredCandidates.map((candidate) => (
                 <div 
                   key={candidate.application_id} 
-                  className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer"
-                  onClick={() => router.push(`/candidates/${candidate.applicant_id}?jobId=${candidate.id}`)}
+                  className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer"
+                  onClick={() => router.push(`/candidates/${candidate.application_id}`)}
                 >
                   <div className="flex items-start justify-between gap-4">
-                    {/* Candidate Info */}
+                    {/* Candidate Info - Mixed Layout */}
                     <div className="flex items-start space-x-4 flex-1">
                       <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">
                         {candidate.first_name?.charAt(0)}{candidate.last_name?.charAt(0)}
@@ -475,25 +496,21 @@ export default function CandidatesList() {
                           <h3 className="text-lg font-bold text-gray-900">
                             {candidate.first_name} {candidate.last_name}
                           </h3>
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getMatchScoreColor(candidate.match_score)}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getMatchScoreColor(candidate.match_score)}`}>
                             <SparklesIcon className="w-3 h-3 mr-1" />
                             {candidate.match_score}% Match
-                          </span>
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(candidate.application_status)}`}>
-                            {candidate.application_status}
                           </span>
                         </div>
                         
                         <div className="flex items-center text-sm text-gray-600 mb-2">
-                          <EnvelopeIcon className="w-4 h-4 mr-1" />
-                          <span>{candidate.email}</span>
+                          <span className="font-medium">{candidate.email}</span>
                           <span className="mx-2">•</span>
                           <MapPinIcon className="w-4 h-4 mr-1" />
                           <span>{getLocationText(candidate.location)}</span>
                         </div>
 
                         {/* Job and Company */}
-                        <div className="flex items-center text-sm text-gray-700 mb-3">
+                        <div className="flex items-center text-sm text-gray-700 mb-2">
                           <BuildingOfficeIcon className="w-4 h-4 mr-1 text-gray-500" />
                           <span className="font-medium">{candidate.job_title}</span>
                           <span className="mx-2">•</span>
@@ -508,13 +525,33 @@ export default function CandidatesList() {
                           </div>
                         )}
 
+                        {/* Skills Match Summary */}
+                        <div className="flex items-center gap-4 text-xs text-gray-600 mb-3">
+                          <div className="flex items-center">
+                            <DocumentTextIcon className="w-3 h-3 mr-1 text-green-500" />
+                            <span>{candidate.match_details.skills_matched.length} skills match</span>
+                          </div>
+                          {candidate.match_details.skills_missing.length > 0 && (
+                            <div className="flex items-center">
+                              <LightBulbIcon className="w-3 h-3 mr-1 text-orange-500" />
+                              <span>{candidate.match_details.skills_missing.length} skills missing</span>
+                            </div>
+                          )}
+                          {!candidate.match_details.education_match.has_required_education && (
+                            <div className="flex items-center">
+                              <AcademicCapIcon className="w-3 h-3 mr-1 text-blue-500" />
+                              <span>Education gap</span>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Skills Preview */}
-                        {candidate.match_details?.skills_matched && candidate.match_details.skills_matched.length > 0 && (
+                        {candidate.match_details.skills_matched.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {candidate.match_details.skills_matched.slice(0, 4).map((skill, index) => (
                               <span
                                 key={index}
-                                className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium border border-blue-200"
+                                className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium border border-green-200"
                               >
                                 {skill}
                               </span>
@@ -529,8 +566,12 @@ export default function CandidatesList() {
                       </div>
                     </div>
 
-                    {/* Right Side - Actions and Date */}
+                    {/* Right Side - Status and Actions */}
                     <div className="flex flex-col items-end gap-3">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(candidate.application_status)}`}>
+                        {candidate.application_status}
+                      </span>
+                      
                       <div className="flex items-center text-xs text-gray-500">
                         <CalendarIcon className="w-3 h-3 mr-1" />
                         <span>Applied {getTimeAgo(candidate.applied_date)}</span>
@@ -553,7 +594,7 @@ export default function CandidatesList() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            router.push(`/candidates/${candidate.applicant_id}?jobId=${candidate.id}`);
+                            router.push(`/candidates/${candidate.application_id}`);
                           }}
                           icon={<EyeIcon className="w-3 h-3" />}
                         >
