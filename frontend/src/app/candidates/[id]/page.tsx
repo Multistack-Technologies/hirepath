@@ -1,10 +1,12 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Button from '@/components/Button';
+import UpdateStatusModal from '@/components/candidates/UpdateStatusModal';
 import Link from 'next/link';
 import api from '@/lib/api';
 import {
@@ -22,8 +24,10 @@ import {
   SparklesIcon,
   AcademicCapIcon,
   TrophyIcon,
-  LightBulbIcon
+  LightBulbIcon,
+  PencilSquareIcon
 } from "@heroicons/react/24/outline";
+
 
 interface Application {
   id: number;
@@ -68,8 +72,10 @@ interface Application {
   can_withdraw: boolean;
 }
 
+
 export default function CandidateProfile() {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -79,23 +85,36 @@ export default function CandidateProfile() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [application, setApplication] = useState<Application | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
 
   const fetchCandidateDetails = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await api.get<Application>(`/applications/${candidateId}/`);
+      console.log('Fetching candidate details for ID:', candidateId); // Debug
+      const response = await api.get(`/applications/${candidateId}/`);
+      
+      console.log('Full API Response:', response); // Debug
+      console.log('Response data:', response.data); // Debug
       
       if (response.data) {
         setApplication(response.data);
+        console.log('Application set:', response.data); // Debug
       } else {
-        setError("Failed to load candidate details: Unexpected response format.");
+        console.error('No data in response'); // Debug
+        setError("Failed to load candidate details: No data received.");
       }
     } catch (err: any) {
+      console.error('API Error:', err); // Debug
       const errorMessage = err.response?.data?.error || err.message || 'Failed to load candidate details';
       setError(errorMessage);
+      addToast({
+        type: 'error',
+        title: 'Failed to load candidate details',
+        message: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -121,30 +140,84 @@ export default function CandidateProfile() {
     }
   }, [user, router, candidateId]);
 
-  const handleShortlist = async (applicationId: number) => {
-    setActionLoading(applicationId);
+  const handleStatusUpdate = async (updateData: {
+    status: string;
+    notes?: string;
+    interview_date?: string;
+  }) => {
     try {
-      await api.patch(`/applications/${applicationId}/`, { status: 'SHORTLISTED' });
-      fetchCandidateDetails(); // Refresh data
-    } catch (err) {
-      console.error("Error shortlisting application:", err);
-      alert("Failed to shortlist application. Please try again.");
+      await api.patch(`/applications/${application!.id}/status`, updateData);
+      await fetchCandidateDetails();
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to update candidate status';
+      throw new Error(errorMessage);
+    }
+  };
+
+  const handleQuickAction = async (action: 'REVIEWED' | 'SHORTLISTED' | 'REJECTED' | 'HIRED') => {
+    setActionLoading(action);
+    
+    // Show immediate toast
+    const toastMessages = {
+      'REVIEWED': { type: 'success' as const, title: 'Candidate marked as reviewed!' },
+      'SHORTLISTED': { type: 'success' as const, title: 'Candidate shortlisted successfully!' },
+      'REJECTED': { type: 'warning' as const, title: 'Candidate rejected' },
+      'HIRED': { type: 'success' as const, title: 'Candidate hired! Congratulations!' }
+    };
+
+    addToast({
+      type: toastMessages[action].type,
+      title: toastMessages[action].title,
+    });
+
+    try {
+      await handleStatusUpdate({ status: action });
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Failed to update status',
+        message: err.response?.data?.error || 'Please try again later.',
+      });
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleReject = async (applicationId: number) => {
-    setActionLoading(applicationId);
-    try {
-      await api.patch(`/applications/${applicationId}/`, { status: 'REJECTED' });
-      fetchCandidateDetails(); // Refresh data
-    } catch (err) {
-      console.error("Error rejecting application:", err);
-      alert("Failed to reject application. Please try again.");
-    } finally {
-      setActionLoading(null);
-    }
+  const handleModalStatusUpdate = async (updateData: {
+    status: string;
+    notes?: string;
+    interview_date?: string;
+  }) => {
+    // Show immediate toast for modal actions
+    const toastMessages = {
+      'REVIEWED': { type: 'success' as const, title: 'Candidate marked as reviewed!' },
+      'SHORTLISTED': { type: 'success' as const, title: 'Candidate shortlisted successfully!' },
+      'REJECTED': { type: 'warning' as const, title: 'Candidate rejected' },
+      'HIRED': { type: 'success' as const, title: 'Candidate hired! Congratulations!' }
+    };
+
+    addToast({
+      type: toastMessages[updateData.status as keyof typeof toastMessages].type,
+      title: toastMessages[updateData.status as keyof typeof toastMessages].title,
+    });
+
+    await handleStatusUpdate(updateData);
+  };
+
+  // Get available actions based on current status
+  const getAvailableActions = () => {
+    if (!application) return [];
+
+    const currentStatus = application.status;
+    const allActions = [
+      { value: 'REVIEWED' as const, label: 'Mark as Reviewed', variant: 'secondary' as const, icon: EyeIcon },
+      { value: 'SHORTLISTED' as const, label: 'Shortlist', variant: 'primary' as const, icon: CheckBadgeIcon },
+      { value: 'REJECTED' as const, label: 'Reject', variant: 'danger' as const, icon: XMarkIcon },
+      { value: 'HIRED' as const, label: 'Hire', variant: 'success' as const, icon: StarIcon }
+    ];
+
+    // Filter out current status and provide relevant actions
+    return allActions.filter(action => action.value !== currentStatus);
   };
 
   const getStatusColor = (status: string) => {
@@ -180,24 +253,32 @@ export default function CandidateProfile() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return 'Invalid date';
+    }
   };
 
   const getTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    return `${Math.floor(diffDays / 30)} months ago`;
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+      return `${Math.floor(diffDays / 30)} months ago`;
+    } catch {
+      return 'Invalid date';
+    }
   };
 
   const getLocationText = (location: Application['applicant_details']['location']) => {
@@ -205,6 +286,11 @@ export default function CandidateProfile() {
       return `${location.city}, ${location.country}`;
     }
     return location?.city || location?.country || 'Location not specified';
+  };
+
+  const getNameInitials = (name?: string) => {
+    if (!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
   if (!user) {
@@ -230,32 +316,34 @@ export default function CandidateProfile() {
             <div className="w-1 h-6 bg-gray-300"></div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {application?.applicant_name}
+                {application?.applicant_name || 'Candidate Profile'}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
-                Application for {application?.job_title}
+                {application ? `Application for ${application.job_title || 'Unknown Position'}` : 'Loading candidate details...'}
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => window.open(`mailto:${application?.applicant_email}`)}
-              icon={<EnvelopeIcon className="w-4 h-4" />}
-            >
-              Contact
-            </Button>
-            {/* <Button
-              variant="primary"
-              size="sm"
-              onClick={() => router.push(`/candidates/${candidateId}/cv`)}
-              icon={<DocumentTextIcon className="w-4 h-4" />}
-            >
-              View CV
-            </Button> */}
-          </div>
+          {application && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => window.open(`mailto:${application.applicant_email}`)}
+                icon={<EnvelopeIcon className="w-4 h-4" />}
+              >
+                Contact
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setIsStatusModalOpen(true)}
+                icon={<PencilSquareIcon className="w-4 h-4" />}
+              >
+                Update Status
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Error Message */}
@@ -311,32 +399,38 @@ export default function CandidateProfile() {
           </div>
         ) : (
           <div className="space-y-6">
+
+
             {/* Candidate Profile Card */}
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-start space-x-4 flex-1">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                    {application.applicant_name?.split(' ').map(n => n[0]).join('')}
+                    {getNameInitials(application.applicant_name)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <h2 className="text-2xl font-bold text-gray-900">
-                        {application.applicant_name}
+                        {application.applicant_name || 'Unknown Candidate'}
                       </h2>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getMatchScoreColor(application.match_score)}`}>
-                        <SparklesIcon className="w-4 h-4 mr-1.5" />
-                        {application.match_score}% Match
-                      </span>
+                      {application.match_score && (
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getMatchScoreColor(application.match_score)}`}>
+                          <SparklesIcon className="w-4 h-4 mr-1.5" />
+                          {application.match_score}% Match
+                        </span>
+                      )}
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(application.status)}`}>
                         {application.status}
                       </span>
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-                      <div className="flex items-center">
-                        <EnvelopeIcon className="w-4 h-4 mr-1" />
-                        <span>{application.applicant_email}</span>
-                      </div>
+                      {application.applicant_email && (
+                        <div className="flex items-center">
+                          <EnvelopeIcon className="w-4 h-4 mr-1" />
+                          <span>{application.applicant_email}</span>
+                        </div>
+                      )}
                       {application.applicant_details?.location && (
                         <div className="flex items-center">
                           <MapPinIcon className="w-4 h-4 mr-1" />
@@ -384,14 +478,14 @@ export default function CandidateProfile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Job Details</h4>
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-gray-600">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Position:</span>
-                      <span className="text-sm font-medium">{application.job_title}</span>
+                      <span className="text-sm">Position:</span>
+                      <span className="text-sm font-medium">{application.job_title || 'Not specified'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Company:</span>
-                      <span className="text-sm font-medium">{application.company_name}</span>
+                      <span className="text-sm font-medium">{application.company_name || 'Not specified'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Applied:</span>
@@ -403,29 +497,29 @@ export default function CandidateProfile() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Match Analysis</h4>
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-gray-600">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Skills Matched:</span>
-                      <span className="text-sm font-medium">{application.match_details.skills_matched.length}</span>
+                      <span className="text-sm font-medium">{application.match_details?.skills_matched?.length || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Skills Missing:</span>
-                      <span className="text-sm font-medium">{application.match_details.skills_missing.length}</span>
+                      <span className="text-sm font-medium">{application.match_details?.skills_missing?.length || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Education Match:</span>
                       <span className={`text-sm font-medium ${
-                        application.match_details.education_match.has_required_education ? 'text-green-600' : 'text-orange-600'
+                        application.match_details?.education_match?.has_required_education ? 'text-green-600' : 'text-orange-600'
                       }`}>
-                        {application.match_details.education_match.has_required_education ? 'Yes' : 'No'}
+                        {application.match_details?.education_match?.has_required_education ? 'Yes' : 'No'}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3">
+              {/* Quick Action Buttons */}
+              <div className="flex items-center gap-3 flex-wrap">
                 <Button
                   variant="secondary"
                   size="sm"
@@ -435,61 +529,28 @@ export default function CandidateProfile() {
                   View Job
                 </Button>
 
-                {application.status === 'PENDING' && (
-                  <>
+                {/* Dynamic Action Buttons */}
+                {getAvailableActions().map((action) => {
+                  const ActionIcon = action.icon;
+                  return (
                     <Button
-                      variant="primary"
+                      key={action.value}
+                      variant={action.variant}
                       size="sm"
-                      onClick={() => handleShortlist(application.id)}
-                      isLoading={actionLoading === application.id}
+                      onClick={() => handleQuickAction(action.value)}
+                      isLoading={actionLoading === action.value}
                       disabled={actionLoading !== null}
-                      icon={<CheckBadgeIcon className="w-4 h-4" />}
+                      icon={<ActionIcon className="w-4 h-4" />}
                     >
-                      Shortlist
+                      {action.label}
                     </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleReject(application.id)}
-                      isLoading={actionLoading === application.id}
-                      disabled={actionLoading !== null}
-                      icon={<XMarkIcon className="w-4 h-4" />}
-                    >
-                      Reject
-                    </Button>
-                  </>
-                )}
-
-                {application.status === 'SHORTLISTED' && (
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleReject(application.id)}
-                    isLoading={actionLoading === application.id}
-                    disabled={actionLoading !== null}
-                    icon={<XMarkIcon className="w-4 h-4" />}
-                  >
-                    Reject
-                  </Button>
-                )}
-
-                {application.status === 'REJECTED' && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handleShortlist(application.id)}
-                    isLoading={actionLoading === application.id}
-                    disabled={actionLoading !== null}
-                    icon={<CheckBadgeIcon className="w-4 h-4" />}
-                  >
-                    Shortlist
-                  </Button>
-                )}
+                  );
+                })}
               </div>
             </div>
 
             {/* AI Feedback Section */}
-            {application.match_details.feedback.length > 0 && (
+            {application.match_details?.feedback && application.match_details.feedback.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <SparklesIcon className="w-5 h-5 text-purple-600" />
@@ -512,7 +573,7 @@ export default function CandidateProfile() {
                 </div>
 
                 {/* Missing Skills */}
-                {application.match_details.skills_missing.length > 0 && (
+                {application.match_details.skills_missing && application.match_details.skills_missing.length > 0 && (
                   <div className="mt-6">
                     <h4 className="font-semibold text-gray-900 mb-3">Skills to Develop</h4>
                     <div className="flex flex-wrap gap-1.5">
@@ -547,6 +608,20 @@ export default function CandidateProfile() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Status Update Modal */}
+        {application && (
+          <UpdateStatusModal
+            isOpen={isStatusModalOpen}
+            onClose={() => setIsStatusModalOpen(false)}
+            candidate={{
+              id: application.id,
+              applicant_name: application.applicant_name || 'Unknown Candidate',
+              current_status: application.status
+            }}
+            onStatusUpdate={handleModalStatusUpdate}
+          />
         )}
       </div>
     </DashboardLayout>

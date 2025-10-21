@@ -3,7 +3,7 @@ import React, { ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'danger' | 'tertiary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'tertiary' | 'ghost' | 'success';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   isLoading?: boolean;
   className?: string;
@@ -27,6 +27,7 @@ const Button: React.FC<ButtonProps> = ({
     tertiary: 'bg-gradient-to-r from-[#D6CDFE] to-[#A594F9] text-white hover:from-[#C5BAFE] hover:to-[#9585F9] focus:ring-[#D6CDFE] shadow-lg hover:shadow-xl',
     secondary: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800 focus:ring-gray-500 shadow-lg hover:shadow-xl',
     danger: 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 focus:ring-red-500 shadow-lg hover:shadow-xl',
+    success: 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 focus:ring-green-500 shadow-lg hover:shadow-xl',
     ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300 border border-gray-300'
   };
 
