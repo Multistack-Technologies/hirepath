@@ -247,14 +247,14 @@ export default function CandidateProfile() {
             >
               Contact
             </Button>
-            <Button
+            {/* <Button
               variant="primary"
               size="sm"
               onClick={() => router.push(`/candidates/${candidateId}/cv`)}
               icon={<DocumentTextIcon className="w-4 h-4" />}
             >
               View CV
-            </Button>
+            </Button> */}
           </div>
         </div>
 
