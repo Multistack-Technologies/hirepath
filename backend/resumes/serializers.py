@@ -23,8 +23,8 @@ class JobMatchSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ResumeFeedbackSerializer(serializers.ModelSerializer):
-    cv_analysis = CVAnalysisSerializer(read_only=True)
-    job_matches = JobMatchSerializer(many=True, read_only=True)
+    cv_analysis = CVAnalysisSerializer(read_only=True, required=False)
+    job_matches = JobMatchSerializer(many=True, read_only=True, required=False)
     market_insights = serializers.SerializerMethodField()
     improvement_recommendations = serializers.SerializerMethodField()
     
@@ -33,41 +33,58 @@ class ResumeFeedbackSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'score', 'skills_detected', 'missing_skills', 'feedback', 
             'job_role_matched', 'uploaded_at', 'cv_analysis', 'job_matches',
-            'market_insights', 'improvement_recommendations'
+            'market_insights', 'improvement_recommendations', 'analysis_data'
         ]
         read_only_fields = fields
 
     def get_market_insights(self, obj):
+        # Use analysis_data if cv_analysis doesn't exist
+        analysis_data = obj.analysis_data or {}
+        market_fit = analysis_data.get('market_fit', {})
+        
         return {
             'high_demand_skills': self.get_high_demand_skills(),
             'salary_benchmarks': self.get_salary_benchmarks(obj.job_role_matched),
             'growth_areas': ['FinTech', 'E-commerce', 'Cloud Services'],
-            'top_companies_hiring': self.get_top_companies(obj.job_role_matched)
+            'top_companies_hiring': self.get_top_companies(obj.job_role_matched),
+            'skills_demand_score': market_fit.get('skills_demand_score', 0),
+            'market_score': market_fit.get('market_score', 0)
         }
 
     def get_improvement_recommendations(self, obj):
-        analysis = obj.cv_analysis
-        if not analysis:
-            return []
+        # Use analysis_data if cv_analysis doesn't exist
+        analysis_data = obj.analysis_data or {}
+        recommendations_data = analysis_data.get('improvement_recommendations', [])
         
+        if recommendations_data:
+            return recommendations_data
+        
+        # Fallback recommendations based on basic analysis
         recommendations = []
         
-        # Skill recommendations
-        if analysis.market_demand_score and analysis.market_demand_score < 70:
+        # Skills recommendations
+        missing_skills = obj.missing_skills or []
+        if missing_skills:
             recommendations.append({
                 'type': 'skill_development',
                 'priority': 'high',
-                'message': 'Focus on high-demand skills like Python and Cloud technologies',
-                'actions': ['Complete AWS certification', 'Build a React project']
+                'message': f'Focus on high-demand skills: {", ".join(missing_skills[:2])}',
+                'actions': [
+                    'Take online courses on Coursera or Udemy',
+                    'Build projects using these technologies'
+                ]
             })
         
-        # Career recommendations
-        if analysis.years_experience and analysis.years_experience >= 3:
+        # Score-based recommendations
+        if obj.score and obj.score < 70:
             recommendations.append({
-                'type': 'career_advancement',
+                'type': 'general_improvement',
                 'priority': 'medium',
-                'message': 'Consider senior or lead roles based on your experience',
-                'actions': ['Update LinkedIn profile', 'Network with senior professionals']
+                'message': 'Your resume could be improved for better job matching',
+                'actions': [
+                    'Add more quantifiable achievements',
+                    'Improve skills section with relevant technologies'
+                ]
             })
         
         return recommendations

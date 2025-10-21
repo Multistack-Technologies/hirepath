@@ -9,7 +9,7 @@ interface SidebarItem {
   href: string;
   icon: ReactNode;
   label: string;
-  badge?: string | number | null; // Optional badge for notifications/counts
+  badge?: string | number | null;
 }
 
 interface SidebarProps {
@@ -17,8 +17,9 @@ interface SidebarProps {
   items: SidebarItem[];
   activeHref?: string;
   className?: string;
-  onCloseMobile?: () => void; // For mobile close functionality
+  onCloseMobile?: () => void;
   showLogo?: boolean;
+  isMobile?: boolean;
 }
 
 export default function Sidebar({ 
@@ -27,12 +28,12 @@ export default function Sidebar({
   activeHref, 
   className = '', 
   onCloseMobile,
-  showLogo = true 
+  showLogo = true,
+  isMobile = false
 }: SidebarProps) {
   const pathname = usePathname();
   const currentPath = activeHref || pathname;
 
-  // Enhanced active check for nested routes
   const isActive = (href: string) => {
     if (href === '/dashboard') {
       return currentPath === href;
@@ -41,16 +42,19 @@ export default function Sidebar({
   };
 
   const handleItemClick = () => {
-    // Close mobile sidebar when item is clicked (mobile only)
-    if (window.innerWidth < 768 && onCloseMobile) {
+    if (onCloseMobile) {
       onCloseMobile();
     }
   };
 
   return (
-    <div className={`
-      bg-white shadow-lg border-r border-gray-200 h-screen fixed w-full
-      flex flex-col z-30
+    <aside className={`
+      bg-white shadow-lg border-r border-gray-200 
+      flex flex-col z-50
+      ${isMobile 
+        ? 'fixed inset-0 w-full h-full' 
+        : 'fixed lg:relative w-64 h-screen'
+      }
       ${className}
     `}>
       {/* Logo Section */}
@@ -62,19 +66,18 @@ export default function Sidebar({
               className="flex items-center space-x-2"
               onClick={handleItemClick}
             >
-            
               <h1 className="text-3xl !capitalize font-extrabold text-[#7551FF]">
                 HIRE-<span className="text-[#130160]">PATH</span>
               </h1>
             </Link>
             
             {/* Close button for mobile */}
-            {onCloseMobile && (
+            {isMobile && onCloseMobile && (
               <button
                 onClick={onCloseMobile}
-                className="md:hidden p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+                className="p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -159,6 +162,6 @@ export default function Sidebar({
           </div>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

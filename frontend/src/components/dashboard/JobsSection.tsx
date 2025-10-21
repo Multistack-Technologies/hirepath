@@ -65,7 +65,7 @@ export default function JobsSection({ jobs, isLoading = false, showViewAll = tru
               key={job.id}
               job={job}
               onApplyClick={() => router.push(`/jobs/${job.id}/apply`)}
-              onViewClick={() => router.push(`/jobs/${job.id}`)}
+              onViewClick={() => router.push(`/Myjobs/${job.id}`)}
             />
           ))}
         </div>

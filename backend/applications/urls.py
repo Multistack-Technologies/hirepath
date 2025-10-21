@@ -5,6 +5,7 @@ from .views import (
     MyApplicationsView, 
     JobApplicationsView,
     ApplicationStatusUpdateView,
+    application_details,
     graduate_stats,
     recruiter_stats,
     recruiter_candidates,
@@ -17,7 +18,8 @@ urlpatterns = [
     path("job/<int:job_id>/", JobApplicationsView.as_view(), name="job-applications"),
     path("<int:pk>/status/", ApplicationStatusUpdateView.as_view(), name="update-application-status"),
     path("<int:application_id>/withdraw/", withdraw_application, name="withdraw-application"),
-    
+      # Single detail endpoint for both graduate and recruiter
+    path("<int:application_id>/", application_details, name="application-details"),
     # Stats endpoints
     path("graduate/stats/", graduate_stats, name="graduate-stats"),
     path("recruiter/stats/", recruiter_stats, name="recruiter-stats"),

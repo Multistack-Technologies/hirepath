@@ -190,7 +190,7 @@ export interface WorkExperience {
 
 // types/job.ts
 export interface Job {
-  application_count:any
+  applications_count:any
   skills: any;
   id: number;
   title: string;
@@ -415,7 +415,7 @@ export interface AnalyticsDataResponse {
   data: DashboardData;
 }
 
-export interface MatchDetails {
+export interface MatchDetail {
   skills_matched: string[];
   skills_missing: string[];
   education_match: {
@@ -462,4 +462,165 @@ export interface CandidatesResponse {
     status: string;
     min_match_score: string | number;
   };
+}
+
+
+
+// types/application.ts
+
+// Location Types
+export interface Location {
+  city: string;
+  country: string;
+  address: string;
+}
+
+// Applicant Details
+export interface ApplicantDetails {
+  location: Location;
+  bio: string;
+  linkedin_url: string;
+  current_job_title: string;
+}
+
+// Match Details Types
+export interface EducationMatch {
+  has_required_education: boolean;
+  preferred_courses: string[];
+}
+
+export interface CertificateMatch {
+  matched_certificates: string[];
+  missing_certificates: string[];
+}
+
+export interface ExperienceMatch {
+  [key: string]: any; // Empty object in your example
+}
+
+export interface MatchDetails {
+  skills_matched: string[];
+  skills_missing: string[];
+  education_match: EducationMatch;
+  certificate_match: CertificateMatch;
+  experience_match: ExperienceMatch;
+  feedback: string[];
+}
+
+// Main Application Type
+export interface Application {
+  id: number;
+  job: number; // Job ID
+  job_title: string;
+  company_name: string;
+  company_logo: string | null;
+  applicant: number; // User ID
+  applicant_name: string;
+  applicant_email: string;
+  applicant_details: ApplicantDetails;
+  cover_letter: string | null;
+  status: ApplicationStatus;
+  applied_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  match_score: number;
+  match_details: MatchDetail;
+  notes: string | null;
+  interview_date: string | null; // ISO date string
+  can_withdraw: boolean;
+}
+
+export type ApplicationStatus = 
+  | 'PENDING'
+  | 'REVIEWED'
+  | 'SHORTLISTED'
+  | 'INTERVIEW'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'WITHDRAWN';
+
+// API Response Types
+export interface ApplicationsResponse {
+  results: Application[];
+  total_count?: number;
+}
+
+export interface ApplicationResponse {
+  data: Application;
+}
+
+export interface ApiError {
+  error: string;
+  status?: number;
+  message?: string;
+}
+
+// Form Types
+export interface ApplicationFormData {
+  job: number;
+  cover_letter?: string;
+}
+
+export interface StatusUpdateData {
+  status: ApplicationStatus;
+  notes?: string;
+  interview_date?: string;
+}
+
+// Filter Types
+export interface ApplicationFilters {
+  status?: ApplicationStatus;
+  min_match_score?: number;
+  job_id?: number;
+}
+
+// Stats Types
+export interface GraduateStats {
+  totalApplications: number;
+  applicationsByStatus: Record<ApplicationStatus, number>;
+  averageMatchScore: number;
+  recentApplications: number;
+  topMatchedJobs: Array<{
+    job__title: string;
+    match_score: number;
+  }>;
+}
+
+export interface RecruiterStats {
+  totalJobs: number;
+  totalApplications: number;
+  applicationsByStatus: Record<ApplicationStatus, number>;
+  averageMatchScore: number;
+  applicationsByJob: Array<{
+    title: string;
+    application_count: number;
+    avg_match_score: number;
+  }>;
+}
+
+
+
+// Utility Types
+export type LoadingState = 'idle' | 'loading' | 'success' | 'error';
+
+export interface FormState {
+  isSubmitting: boolean;
+  isSuccess: boolean;
+  error?: string;
+}
+
+// Component Prop Types
+export interface ApplicationCardProps {
+  application: Application;
+  onWithdraw?: (id: number) => void;
+  onViewDetails?: (application: Application) => void;
+  variant?: 'graduate' | 'recruiter';
+}
+
+export interface ApplicationModalProps {
+  application?: Application;
+  isOpen: boolean;
+  onClose: () => void;
+  onAction?: (data: any) => Promise<void>;
+  actionType?: 'view' | 'withdraw' | 'update-status';
+  userRole: 'graduate' | 'recruiter';
 }

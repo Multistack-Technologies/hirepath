@@ -107,12 +107,6 @@ export default function FindWorkContent() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Find Work</h1>
-        <p className="text-gray-600 mt-2">Discover your next career opportunity</p>
-      </div>
-
       <SearchFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -136,12 +130,7 @@ export default function FindWorkContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Job List - 2/3 width */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Available Jobs ({sortedJobs.length})
-              </h2>
-            </div>
+          <div className="">
             <JobList
               jobs={sortedJobs}
               selectedJob={selectedJob}

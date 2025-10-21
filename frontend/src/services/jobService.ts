@@ -84,7 +84,7 @@ class JobService {
   }
 
    async getJobById(id: number): Promise<Job> {
-    const response = await api.get<Job>(`/jobs/${id}/`);
+    const response = await api.get<Job>(`/jobs/details/${id}/`);
     const job = response.data;
     
     // Ensure arrays are always defined

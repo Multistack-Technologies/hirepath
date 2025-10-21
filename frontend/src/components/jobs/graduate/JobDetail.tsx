@@ -56,7 +56,7 @@ export default function JobDetail({ job, onApply, isApplying = false }: JobDetai
          
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-gray-900">{job.application_count || 0}</div>
+          <div className="text-2xl font-bold text-gray-900">{job.applications_count || 0}</div>
           <div className="text-sm text-gray-500">Applied</div>
         </div>
       </div>

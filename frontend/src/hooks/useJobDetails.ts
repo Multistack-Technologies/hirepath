@@ -15,7 +15,7 @@ export function useJobDetails(jobId: number) {
   const [job, setJob] = useState<Job | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { fetchJobDetails, fetchJobCandidates, isLoading } = useJobs();
+  const { fetchMyDetails, fetchJobCandidates, isLoading } = useJobs();
 
   const fetchData = async () => {
     if (isNaN(jobId)) {
@@ -26,7 +26,7 @@ export function useJobDetails(jobId: number) {
     try {
       setError(null);
       const [jobData, candidatesData] = await Promise.all([
-        fetchJobDetails(jobId),
+        fetchMyDetails(jobId),
         fetchJobCandidates(jobId),
       ]);
       

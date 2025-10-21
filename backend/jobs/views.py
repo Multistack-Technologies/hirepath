@@ -31,6 +31,9 @@ class JobListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         
+        # Prefetch related data to optimize queries
+        queryset = queryset.select_related('company').prefetch_related('skills_required', 'applications')
+        
         # Filter by employment type
         employment_type = self.request.query_params.get('employment_type')
         if employment_type:
@@ -69,7 +72,7 @@ class MyJobListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Job.objects.filter(created_by=user).order_by("-created_at")
+        return Job.objects.filter(created_by=user).select_related('company').prefetch_related('skills_required', 'applications').order_by("-created_at")
 
 class JobDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = JobSerializer
@@ -80,7 +83,7 @@ class JobDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Job.objects.filter(created_by=user)
 
     def get_serializer_class(self):
-        if self.request.method in ['PUT', 'PATCH']:
+        if self.request.method in ['PUT', 'PATCH','GET']:
             return JobCreateSerializer
         return JobSerializer
 
@@ -94,6 +97,9 @@ class JobPublicDetailView(generics.RetrieveAPIView):
     serializer_class = JobSerializer
     permission_classes = [permissions.AllowAny]  
 
+    def get_queryset(self):
+        return Job.objects.select_related('company').prefetch_related('skills_required', 'applications')
+
     def get_object(self):
         queryset = self.get_queryset()
         obj = get_object_or_404(queryset, pk=self.kwargs['pk'])
@@ -106,7 +112,7 @@ def active_jobs(request):
     jobs = Job.objects.filter(
         models.Q(closing_date__gte=date.today()) | 
         models.Q(closing_date__isnull=True)
-    ).order_by("-created_at")
+    ).select_related('company').prefetch_related('skills_required', 'applications').order_by("-created_at")
     
     # Apply filters to active jobs as well
     employment_type = request.query_params.get('employment_type')

@@ -93,17 +93,28 @@ export default function SidebarNavigation({ isMobileOpen, onCloseMobile }: Sideb
         />
       )}
       
-      {/* Sidebar */}
+      {/* Desktop Sidebar - Hidden on mobile, shown on lg screens */}
+      <div className="hidden lg:flex lg:flex-shrink-0">
+        <Sidebar
+          logoText="Hire-Path"
+          items={getSidebarItems()}
+          activeHref={pathname}
+          className="w-64"
+        />
+      </div>
+
+      {/* Mobile Sidebar - Slides in from left */}
       <div className={`
-        
-        transform ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} 
-        lg:translate-x-0 transition duration-300 ease-in-out
+        lg:hidden fixed inset-y-0 left-0 z-50
+        transform transition-transform duration-300 ease-in-out
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <Sidebar
           logoText="Hire-Path"
           items={getSidebarItems()}
           activeHref={pathname}
           onCloseMobile={onCloseMobile}
+          isMobile={true}
         />
       </div>
     </>

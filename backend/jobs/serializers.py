@@ -33,6 +33,7 @@ class JobSerializer(serializers.ModelSerializer):
     salary_range = serializers.SerializerMethodField()
     is_active = serializers.BooleanField(read_only=True)
     days_remaining = serializers.SerializerMethodField()
+    applications_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Job
@@ -44,6 +45,7 @@ class JobSerializer(serializers.ModelSerializer):
             "skills_required", "skills_required_ids", 
             "certificates_preferred", "certificates_preferred_ids",
             "courses_preferred", "courses_preferred_ids",
+            "applications_count",
             "created_at", "updated_at", "created_by"
         ]
         read_only_fields = ["id", "created_at", "updated_at", "created_by", "company_name", "company_logo"]
@@ -58,11 +60,11 @@ class JobSerializer(serializers.ModelSerializer):
 
     def get_salary_range(self, obj):
         if obj.min_salary and obj.max_salary:
-            return f"${obj.min_salary:,} - ${obj.max_salary:,}"
+            return f"R{obj.min_salary:,} - R{obj.max_salary:,}"
         elif obj.min_salary:
-            return f"From ${obj.min_salary:,}"
+            return f"From R{obj.min_salary:,}"
         elif obj.max_salary:
-            return f"Up to ${obj.max_salary:,}"
+            return f"Up to R{obj.max_salary:,}"
         return "Salary not specified"
 
     def get_days_remaining(self, obj):
@@ -72,6 +74,10 @@ class JobSerializer(serializers.ModelSerializer):
             remaining = (obj.closing_date - today).days
             return max(0, remaining)
         return None
+
+    def get_applications_count(self, obj):
+        """Return number of applications for this job"""
+        return obj.applications.count()
 
     def validate(self, data):
         """
@@ -130,6 +136,10 @@ class JobListSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(read_only=True)
     days_remaining = serializers.SerializerMethodField()
     skills_count = serializers.SerializerMethodField()
+    
+    # New fields
+    skills_list = serializers.SerializerMethodField()
+    applications_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Job
@@ -137,7 +147,7 @@ class JobListSerializer(serializers.ModelSerializer):
             "id", "title", "company_name", "company_logo", "location",
             "employment_type_display", "work_type_display", "experience_level_display", 
             "salary_range", "closing_date", "is_active", "days_remaining", 
-            "skills_count", "created_at"
+            "skills_count", "skills_list", "applications_count", "created_at"
         ]
 
     def get_company_logo(self, obj):
@@ -150,11 +160,11 @@ class JobListSerializer(serializers.ModelSerializer):
 
     def get_salary_range(self, obj):
         if obj.min_salary and obj.max_salary:
-            return f"${obj.min_salary:,} - ${obj.max_salary:,}"
+            return f"R{obj.min_salary:,} - R{obj.max_salary:,}"
         elif obj.min_salary:
-            return f"From ${obj.min_salary:,}"
+            return f"From R{obj.min_salary:,}"
         elif obj.max_salary:
-            return f"Up to ${obj.max_salary:,}"
+            return f"Up to R{obj.max_salary:,}"
         return "Salary not specified"
 
     def get_days_remaining(self, obj):
@@ -167,3 +177,11 @@ class JobListSerializer(serializers.ModelSerializer):
 
     def get_skills_count(self, obj):
         return obj.skills_required.count()
+
+    def get_skills_list(self, obj):
+        """Return list of skill names"""
+        return list(obj.skills_required.values_list('name', flat=True))
+
+    def get_applications_count(self, obj):
+        """Return number of applications for this job"""
+        return obj.applications.count()

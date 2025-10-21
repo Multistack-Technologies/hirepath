@@ -33,7 +33,7 @@ export default function JobDetails() {
   }, [user, router]);
 
   const handleBack = () => {
-    router.push('/recruiter/jobs');
+    router.push('/jobs');
   };
 
   const handleEditJob = () => {

@@ -68,6 +68,254 @@ def extract_text_from_file(file_path):
         print(f"Error extracting text: {e}")
         return ""
 
+def analyze_text_quality(text):
+    """Analyze the quality and structure of resume text"""
+    if not text or len(text.strip()) == 0:
+        return {"score": 0, "issues": ["Empty or invalid resume text"]}
+    
+    issues = []
+    score = 100  # Start with perfect score
+    
+    # Check length
+    word_count = len(text.split())
+    if word_count < 50:
+        issues.append("Resume seems too short")
+        score -= 30
+    elif word_count > 1000:
+        issues.append("Resume might be too long")
+        score -= 10
+    
+    # Check for common resume sections
+    section_keywords = {
+        'experience': ['experience', 'work history', 'employment'],
+        'education': ['education', 'qualification', 'degree'],
+        'skills': ['skills', 'technical skills', 'competencies']
+    }
+    
+    missing_sections = []
+    text_lower = text.lower()
+    
+    for section, keywords in section_keywords.items():
+        if not any(keyword in text_lower for keyword in keywords):
+            missing_sections.append(section)
+    
+    if missing_sections:
+        issues.append(f"Missing common sections: {', '.join(missing_sections)}")
+        score -= len(missing_sections) * 10
+    
+    # Check for contact information
+    contact_patterns = [
+        r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',  # email
+        r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'  # phone
+    ]
+    
+    contact_info_found = any(re.search(pattern, text) for pattern in contact_patterns)
+    if not contact_info_found:
+        issues.append("Contact information may be missing")
+        score -= 15
+    
+    # Check formatting issues
+    if text.count('\n') < 5:
+        issues.append("Poor formatting - may lack proper structure")
+        score -= 10
+    
+    # Check for excessive whitespace
+    if '  ' in text or text.count('\n\n\n') > 3:
+        issues.append("Formatting issues detected")
+        score -= 5
+    
+    return {
+        "score": max(0, score),
+        "word_count": word_count,
+        "issues": issues,
+        "has_contact_info": contact_info_found,
+        "missing_sections": missing_sections
+    }
+
+def extract_tools_technologies(text):
+    """Extract tools and technologies from text"""
+    tools = [
+        'git', 'github', 'gitlab', 'jira', 'confluence', 'slack', 'trello',
+        'vs code', 'visual studio', 'eclipse', 'intellij', 'pycharm',
+        'postman', 'swagger', 'jenkins', 'travis', 'circleci'
+    ]
+    
+    found_tools = []
+    for tool in tools:
+        if tool in text.lower():
+            found_tools.append(tool.title())
+    
+    return found_tools
+
+def categorize_skills(skills):
+    """Categorize skills into domains"""
+    categories = {
+        'programming': [],
+        'web_development': [],
+        'cloud_devops': [],
+        'data_ai': [],
+        'soft_skills': []
+    }
+    
+    skill_mapping = {
+        'programming': ['python', 'java', 'javascript', 'c#', 'c++', 'go', 'rust'],
+        'web_development': ['html', 'css', 'react', 'angular', 'vue', 'node.js'],
+        'cloud_devops': ['aws', 'azure', 'docker', 'kubernetes', 'jenkins', 'terraform'],
+        'data_ai': ['sql', 'machine learning', 'data science', 'tensorflow', 'pytorch'],
+        'soft_skills': ['communication', 'leadership', 'teamwork', 'problem solving']
+    }
+    
+    for skill in skills:
+        skill_lower = skill.lower()
+        for category, keywords in skill_mapping.items():
+            if any(keyword in skill_lower for keyword in keywords):
+                categories[category].append(skill)
+                break
+    
+    return categories
+
+def extract_experience_analysis(text):
+    """Extract and analyze experience information"""
+    experience = {}
+    
+    # Extract job titles
+    experience['job_titles'] = extract_job_titles(text)
+    
+    # Extract companies (simplified)
+    experience['companies'] = extract_companies(text)
+    
+    # Extract duration
+    experience['total_experience'] = extract_experience_years(text)
+    
+    return experience
+
+def extract_companies(text):
+    """Extract company names (simplified version)"""
+    # This is a simplified version - in production you'd want a more robust approach
+    companies = []
+    
+    # Look for company-like patterns near job titles
+    company_patterns = [
+        r'at\s+([A-Z][a-zA-Z0-9\s&]+)',
+        r',\s*([A-Z][a-zA-Z0-9\s&]+)',
+    ]
+    
+    for pattern in company_patterns:
+        matches = re.findall(pattern, text)
+        companies.extend(matches)
+    
+    return list(set(companies))[:5]  # Return top 5 unique companies
+
+def estimate_experience_from_dates(text):
+    """Estimate experience from employment dates"""
+    periods = extract_employment_periods(text)
+    if not periods:
+        return 0
+    
+    total_months = 0
+    for period in periods:
+        months = (period['end'].year - period['start'].year) * 12 + (period['end'].month - period['start'].month)
+        total_months += months
+    
+    return total_months // 12
+
+def calculate_career_gaps(periods):
+    """Calculate total career gap in months"""
+    if len(periods) < 2:
+        return 0
+    
+    # Sort periods by start date
+    sorted_periods = sorted(periods, key=lambda x: x['start'])
+    
+    total_gap = 0
+    for i in range(len(sorted_periods) - 1):
+        gap = (sorted_periods[i+1]['start'] - sorted_periods[i]['end']).days // 30
+        if gap > 0:
+            total_gap += gap
+    
+    return total_gap
+
+def extract_gpa(text):
+    """Extract GPA from text"""
+    gpa_patterns = [
+        r'GPA\s*:\s*(\d+\.\d+)',
+        r'Grade Point Average\s*:\s*(\d+\.\d+)',
+        r'\b(\d+\.\d+)\s*GPA',
+    ]
+    
+    for pattern in gpa_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return float(match.group(1))
+    
+    return None
+
+def extract_certifications(text):
+    """Extract certifications from text"""
+    common_certs = [
+        'AWS', 'Azure', 'Google Cloud', 'PMP', 'Scrum Master', 'CISSP',
+        'CEH', 'CCNA', 'CCNP', 'Microsoft Certified', 'Oracle Certified'
+    ]
+    
+    found_certs = []
+    for cert in common_certs:
+        if cert.lower() in text.lower():
+            found_certs.append(cert)
+    
+    return found_certs
+
+def detect_management(text):
+    """Detect management experience"""
+    management_indicators = [
+        'managed', 'directed', 'oversaw', 'supervised', 'headed', 'team of',
+        'department', 'budget', 'strategy', 'planning', 'executive'
+    ]
+    
+    return any(indicator in text.lower() for indicator in management_indicators)
+
+def get_salary_benchmarks(job_role, locations):
+    """Get salary benchmarks for job role and locations"""
+    benchmarks = {}
+    for location in locations:
+        if location in SA_MARKET_DATA['salary_ranges']:
+            if job_role in SA_MARKET_DATA['salary_ranges'][location]:
+                benchmarks[location] = SA_MARKET_DATA['salary_ranges'][location][job_role]
+    
+    return benchmarks
+
+def analyze_location_demand(job_role, locations):
+    """Analyze location demand for job role"""
+    # Simplified - in production, you'd have more sophisticated location analysis
+    location_demand = {}
+    for location in locations:
+        # Base demand score with some variation
+        base_demand = 70
+        if location == 'Johannesburg':
+            base_demand += 10
+        elif location == 'Cape Town':
+            base_demand += 5
+        
+        location_demand[location] = {
+            'demand_score': base_demand,
+            'opportunities': 'High' if base_demand > 70 else 'Medium'
+        }
+    
+    return location_demand
+
+def calculate_market_score(market_fit):
+    """Calculate overall market score"""
+    skills_score = market_fit.get('skills_demand_score', 0)
+    location_score = 0
+    
+    location_demand = market_fit.get('location_demand', {})
+    if location_demand:
+        avg_location_score = sum(
+            loc_data.get('demand_score', 0) for loc_data in location_demand.values()
+        ) / len(location_demand)
+        location_score = avg_location_score
+    
+    return (skills_score * 0.7 + location_score * 0.3)
+
 def analyze_resume_comprehensive(text, job_role="Junior Developer", preferred_locations=None):
     """Comprehensive resume analysis"""
     if preferred_locations is None:

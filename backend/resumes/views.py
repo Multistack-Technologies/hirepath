@@ -6,11 +6,58 @@ from rest_framework.response import Response
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 import os
-from .models import Resume
+from .models import Resume, CVAnalysis
 from .engine import analyze_resume
 from .serializers import ResumeUploadSerializer, ResumeFeedbackSerializer 
 from rest_framework import permissions
 from .recommendation_engine import CareerRecommendationEngine
+
+def create_or_update_cv_analysis(resume_obj, comprehensive_analysis):
+    """Create or update CVAnalysis object with comprehensive data"""
+    if not comprehensive_analysis:
+        return
+    
+    try:
+        personal_insights = comprehensive_analysis.get('personal_insights', {})
+        education_analysis = comprehensive_analysis.get('education_analysis', {})
+        skills_analysis = comprehensive_analysis.get('skills_analysis', {})
+        achievement_metrics = comprehensive_analysis.get('achievement_metrics', {})
+        market_fit = comprehensive_analysis.get('market_fit', {})
+        
+        # Create or update CVAnalysis
+        cv_analysis, created = CVAnalysis.objects.update_or_create(
+            resume=resume_obj,
+            defaults={
+                # Personal & Career Insights
+                'years_experience': personal_insights.get('years_experience'),
+                'career_gap_months': personal_insights.get('career_gap_months', 0),
+                'job_stability_score': personal_insights.get('job_stability_score'),
+                'career_progression': personal_insights.get('career_progression'),
+                
+                # Education Analysis
+                'education_level': education_analysis.get('education_level', ''),
+                'gpa': education_analysis.get('gpa'),
+                'qualifications': education_analysis.get('qualifications', []),
+                
+                # Skills & Competencies
+                'technical_skills': skills_analysis.get('technical', []),
+                'soft_skills': skills_analysis.get('soft', []),
+                'certifications': education_analysis.get('certifications', []),
+                
+                # Achievement Metrics
+                'achievements_count': achievement_metrics.get('count', 0),
+                'quantifiable_achievements': achievement_metrics.get('quantifiable', []),
+                'leadership_experience': achievement_metrics.get('leadership', False),
+                'management_experience': achievement_metrics.get('management', False),
+                
+                # Market Analysis
+                'market_demand_score': market_fit.get('skills_demand_score'),
+            }
+        )
+        return cv_analysis
+    except Exception as e:
+        print(f"Error creating CVAnalysis for resume {resume_obj.id}: {e}")
+        return None
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -51,11 +98,21 @@ def upload_and_analyze_resume(request):
         resume_obj.missing_skills = analysis_result['missing_skills']
         resume_obj.feedback = analysis_result['feedback']
         resume_obj.job_role_matched = analysis_result['job_role_matched']
-        # Optional: Save extracted text if returned by engine
-        # resume_obj.extracted_text = analysis_result.get('extracted_text', '')
+        
+        # Store comprehensive analysis data
+        comprehensive_analysis = analysis_result.get('comprehensive_analysis', {})
+        resume_obj.analysis_data = comprehensive_analysis
+        
+        # Save extracted text if available
+        if comprehensive_analysis:
+            resume_obj.extracted_text = comprehensive_analysis.get('extracted_text', '')
+        
         resume_obj.save()
 
-        # 5. Serialize and return the feedback
+        # 5. Create or update CVAnalysis object
+        create_or_update_cv_analysis(resume_obj, comprehensive_analysis)
+
+        # 6. Serialize and return the feedback
         feedback_serializer = ResumeFeedbackSerializer(resume_obj)
         return Response(feedback_serializer.data, status=status.HTTP_201_CREATED)
 

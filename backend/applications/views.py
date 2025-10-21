@@ -205,3 +205,64 @@ def recruiter_candidates(request):
     
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+    
+
+
+# Graduate views specific application details - returns same object as list
+class ApplicationDetailView(generics.RetrieveAPIView):
+    serializer_class = ApplicationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Application.objects.filter(applicant=self.request.user).select_related(
+            'job', 'job__company', 'applicant'
+        )
+
+    def get_object(self):
+        application = get_object_or_404(
+            Application, 
+            id=self.kwargs['application_id'],
+            applicant=self.request.user
+        )
+        return application
+
+# Recruiter views specific application details - returns same object as list
+class RecruiterApplicationDetailView(generics.RetrieveAPIView):
+    serializer_class = ApplicationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Application.objects.filter(
+            job__created_by=self.request.user
+        ).select_related('applicant', 'job', 'job__company')
+
+    def get_object(self):
+        application = get_object_or_404(
+            Application, 
+            id=self.kwargs['application_id'],
+            job__created_by=self.request.user
+        )
+        return application
+
+# Single endpoint that handles both graduate and recruiter with proper permissions
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def application_details(request, application_id):
+    """Get application details - returns same object as list endpoints"""
+    try:
+        application = get_object_or_404(Application, id=application_id)
+        
+        # Check permissions
+        if not (application.applicant == request.user or 
+                application.job.created_by == request.user):
+            return Response(
+                {'error': 'You do not have permission to view this application'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Use the same serializer as list views
+        serializer = ApplicationSerializer(application, context={'request': request})
+        return Response(serializer.data)
+    
+    except Application.DoesNotExist:
+        return Response({'error': 'Application not found'}, status=status.HTTP_404_NOT_FOUND)

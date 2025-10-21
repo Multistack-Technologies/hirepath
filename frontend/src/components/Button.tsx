@@ -1,66 +1,69 @@
 // src/components/Button.tsx
 import React, { ButtonHTMLAttributes } from 'react';
 
-// Define the props for our Button component
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode; // Content inside the button (e.g., text)
-  variant?: 'primary' | 'secondary' | 'danger'|'tertiary'; // Different styles
-  size?: 'sm' | 'md' | 'lg'; // Different sizes
-  isLoading?: boolean; // Show loading state
-  className?: string; // Allow additional Tailwind classes
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'danger' | 'tertiary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  isLoading?: boolean;
+  className?: string;
+  icon?: React.ReactNode;
 }
 
 const Button: React.FC<ButtonProps> = ({
   children,
-  variant = 'primary', // Default variant
-  size = 'md',         // Default size
-  isLoading = false,   // Default loading state
-  className = '',      // Default additional classes
+  variant = 'primary',
+  size = 'md',
+  isLoading = false,
+  className = '',
+  icon,
   disabled,
-  ...props            // Pass through other standard button props (e.g., onClick, type)
+  ...props
 }) => {
-  // Define Tailwind classes based on props
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]';
 
   const variantClasses = {
-    primary: 'bg-[#130160] text-white hover:bg-[#130169] focus:ring-[#130160]',
-    tertiary: 'bg-[#D6CDFE] text-white hover:bg-[#130169] focus:ring-[#D6CDFE]',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    primary: 'bg-gradient-to-r from-[#130160] to-[#3A0088] text-white hover:from-[#1A0180] hover:to-[#4A0098] focus:ring-[#130160] shadow-lg hover:shadow-xl',
+    tertiary: 'bg-gradient-to-r from-[#D6CDFE] to-[#A594F9] text-white hover:from-[#C5BAFE] hover:to-[#9585F9] focus:ring-[#D6CDFE] shadow-lg hover:shadow-xl',
+    secondary: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800 focus:ring-gray-500 shadow-lg hover:shadow-xl',
+    danger: 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 focus:ring-red-500 shadow-lg hover:shadow-xl',
+    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300 border border-gray-300'
   };
 
   const sizeClasses = {
-    sm: 'text-xs px-3 py-1.5',
-    md: 'text-sm px-4 py-2',
-    lg: 'text-base px-6 py-3',
+    sm: 'text-xs px-3 py-2 gap-1',
+    md: 'text-sm px-5 py-2.5 gap-2',
+    lg: 'text-base px-6 py-3 gap-2',
+    xl: 'text-lg px-8 py-4 gap-3'
   };
 
-  // Combine all classes
   const buttonClasses = [
     baseClasses,
     variantClasses[variant],
     sizeClasses[size],
-    className, // User-provided classes
+    className,
   ].join(' ');
 
   return (
     <button
-      type="button" // Default to button, can be overridden via props
+      type="button"
       className={buttonClasses}
-      disabled={disabled || isLoading} // Disable if explicitly disabled or loading
-      {...props} // Spread other props like onClick, type, etc.
+      disabled={disabled || isLoading}
+      {...props}
     >
       {isLoading ? (
-        <span className="flex items-center">
-          {/* Simple loading spinner */}
-          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <span className="flex items-center gap-2">
+          <svg className="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           Loading...
         </span>
       ) : (
-        children // Display the button text/children
+        <>
+          {icon && <span className="flex-shrink-0">{icon}</span>}
+          {children}
+        </>
       )}
     </button>
   );

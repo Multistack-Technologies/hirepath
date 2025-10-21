@@ -99,7 +99,7 @@ export default function JobList({ jobs, selectedJob, onSelectJob, showFullPageLi
                         <span className="font-medium">{job.employment_type_display}</span>
                       </div>
                       <div className="text-sm text-gray-500">
-                        {job.application_count || 0} applied
+                        {job.applications_count || 0} applied
                       </div>
                     </div>
 

@@ -73,7 +73,7 @@ export default function JobCard({
             </span>
             {showApplicationCount && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                {formatApplicationCount(job.application_count)}
+                {formatApplicationCount(job.applications_count)}
               </span>
             )}
           </div>

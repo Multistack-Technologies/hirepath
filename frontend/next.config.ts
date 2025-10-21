@@ -10,8 +10,8 @@ const nextConfig: NextConfig = {
   },
     images: {
     domains: [
-      'localhost',
-      '127.0.0.1',
+      'http://localhost',
+      'http://127.0.0.1',
       'your-backend-domain.com',
       "http://hirepath.co.za",
       "https://hirepath.co.za",

@@ -209,7 +209,7 @@ export default function JobDetailPage() {
                   <div></div>
                   <div>
                     <div className="text-2xl font-bold text-gray-900">
-                      {job.application_count || 0}
+                      {job.applications_count || 0}
                     </div>
                     <div className="text-sm text-gray-500">Applications</div>
                   </div>
@@ -407,7 +407,7 @@ export default function JobDetailPage() {
                         {isApplying ? "Applying..." : "APPLY NOW"}
                       </Button>
                       <p className="text-sm text-gray-600">
-                        {job.application_count || 0} people have applied for
+                        {job.applications_count || 0} people have applied for
                         this position
                       </p>
                     </>

@@ -25,7 +25,7 @@ export const useJobs = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await jobsService.getJobDetails(jobId);
+      const response = await jobsService.getJobDetailsView(jobId);
       return response.data;
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || 'Failed to load job details';
@@ -36,6 +36,20 @@ export const useJobs = () => {
     }
   }, []);
 
+   const fetchMyDetails = useCallback(async (jobId: number): Promise<Job> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await jobsService.getJobDetails(jobId);
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to load job details';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
  
 
   const fetchJobCandidates = useCallback(async (jobId: number): Promise<Candidate[]> => {
@@ -43,8 +57,8 @@ export const useJobs = () => {
     setError(null);
     try {
       const response = await jobsService.getJobApplications(jobId);
-      if (response.data?.results) {
-        return response.data.results
+      if (response.data) {
+        return response.data
       }
       return [];
     } catch (err: any) {
@@ -63,5 +77,6 @@ export const useJobs = () => {
     fetchMyJobs,
     fetchJobDetails,
     fetchJobCandidates,
+    fetchMyDetails
   };
 };

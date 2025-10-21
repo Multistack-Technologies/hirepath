@@ -34,7 +34,7 @@ export default function DashboardLayout({
     }
   }, [user, authLoading, router]);
 
-  // Close mobile menu on resize
+  // Close mobile menu on resize and route change
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -42,9 +42,25 @@ export default function DashboardLayout({
       }
     };
 
+    // Close mobile menu when route changes
+    setIsMobileMenuOpen(false);
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [router]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
 
   // Show loading state
   if (authLoading) {
@@ -58,17 +74,15 @@ export default function DashboardLayout({
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
-      {/* Sidebar Navigation - Fixed */}
-      <div className="w-[18%]">
-        <SidebarNavigation
-          isMobileOpen={isMobileMenuOpen}
-          onCloseMobile={() => setIsMobileMenuOpen(false)}
-        />
-      </div>
+      {/* Sidebar Navigation */}
+      <SidebarNavigation
+        isMobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
+      />
 
-      {/* Main Content Area - Grid layout */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header - Fixed height, no scroll */}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
+        {/* Header */}
         <div className="flex-shrink-0">
           <DashboardHeader
             pageTitle={pageTitle}
@@ -78,12 +92,12 @@ export default function DashboardLayout({
           />
         </div>
 
-        {/* Content Area - Scrollable with flex-1 */}
+        {/* Content Area */}
         <div className="flex-1 flex flex-col min-h-0">
           <DashboardContent>{children}</DashboardContent>
         </div>
 
-        {/* Footer - Fixed height, no scroll */}
+        {/* Footer */}
         <div className="flex-shrink-0">
           <DashboardFooter />
         </div>

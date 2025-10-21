@@ -1,11 +1,12 @@
 import api from '@/lib/api';
-import { Job, JobFormData, JobCreatePayload, Skill, Certificate, Degree } from '@/types';
+import { Job, JobFormData, JobCreatePayload, Skill, Certificate, Degree, Candidate } from '@/types';
 
 export const jobsService = {
   // Job operations
   getMyJobs: () => api.get<Job[]>('/jobs/me/'),
   
-  getJobDetails: (jobId: number) => api.get<Job>(`/jobs/${jobId}/`),
+  getJobDetails: (jobId: number) => api.get<Job>(`/jobs/details/${jobId}/`),
+  getJobDetailsView: (jobId: number) => api.get<Job>(`/jobs/${jobId}/`),
   
   createJob: (jobData: JobCreatePayload) => api.post<Job>('/jobs/', jobData),
   
@@ -30,7 +31,7 @@ export const jobsService = {
   
   // Applications operations
   getJobApplications: (jobId: number) => 
-    api.get<{ results: any[] }>(`/applications/job/${jobId}/`),
+    api.get<Candidate[]>(`/applications/job/${jobId}/`),
 };
 
 // Helper function to transform form data to API payload
