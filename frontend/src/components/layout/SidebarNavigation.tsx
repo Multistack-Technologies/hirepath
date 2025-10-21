@@ -38,7 +38,7 @@ export default function SidebarNavigation({ isMobileOpen, onCloseMobile }: Sideb
       badge: null,
     },
     {
-      href: '/recruiter/candidates',
+      href: '/candidates',
       icon: <UserIcon className="h-5 w-5" />,
       label: 'Candidates',
       badge: null,
