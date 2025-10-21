@@ -11,7 +11,7 @@ import {
   LightBulbIcon,
   DocumentTextIcon
 } from "@heroicons/react/24/outline";
-import { Candidate } from '@/types';
+import { Application, Candidate } from '@/types';
 
 // interface Candidate {
 //   application_id: number;
@@ -50,7 +50,7 @@ import { Candidate } from '@/types';
 // }
 
 interface JobCandidatesSectionProps {
-  candidates: Candidate[];
+  candidates: Application[];
   jobId: number;
   isLoading?: boolean;
 }
@@ -189,7 +189,7 @@ export default function JobCandidatesSection({
           </div>
           <div className="text-center">
             <div className="text-lg font-bold text-gray-900">
-              {candidates.filter(c => c.application_status === 'PENDING').length}
+              {candidates.filter(c => c.status === 'PENDING').length}
             </div>
             <div className="text-xs text-gray-600 mt-1">Pending</div>
           </div>
@@ -213,20 +213,20 @@ export default function JobCandidatesSection({
         <div className="space-y-4">
           {candidates.map((candidate) => (
             <div 
-              key={candidate.application_id} 
+              key={candidate.id} 
               className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all duration-200 cursor-pointer"
-              onClick={() => handleViewCandidate(candidate.applicant_id)}
+              onClick={() => handleViewCandidate(candidate.id)}
             >
               <div className="flex items-start justify-between gap-4">
                 {/* Candidate Info */}
                 <div className="flex items-start space-x-4 flex-1">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                    {candidate.first_name?.charAt(0)}{candidate.last_name?.charAt(0)}
+                    {candidate.applicant_name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-bold text-gray-900">
-                        {candidate.first_name} {candidate.last_name}
+                        {candidate.applicant_name} 
                       </h3>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getMatchScoreColor(candidate.match_score)}`}>
                         <SparklesIcon className="w-3 h-3 mr-1" />
@@ -235,17 +235,17 @@ export default function JobCandidatesSection({
                     </div>
                     
                     <div className="flex items-center text-sm text-gray-600 mb-2">
-                      <span className="font-medium">{candidate.email}</span>
+                      <span className="font-medium">{candidate.company_name}</span>
                       <span className="mx-2">•</span>
                       <MapPinIcon className="w-4 h-4 mr-1" />
-                      <span>{getLocationText(candidate.location)}</span>
+                      <span>{getLocationText(candidate.applicant_details)}</span>
                     </div>
 
                     {/* Current Job Title */}
-                    {candidate.current_job_title && (
+                    {candidate.job_title && (
                       <div className="flex items-center text-sm text-gray-700 mb-2">
                         <BriefcaseIcon className="w-4 h-4 mr-1 text-gray-500" />
-                        <span>{candidate.current_job_title}</span>
+                        <span>{candidate.job_title}</span>
                       </div>
                     )}
 
@@ -292,19 +292,19 @@ export default function JobCandidatesSection({
 
                 {/* Status and Actions */}
                 <div className="flex flex-col items-end gap-3">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(candidate.application_status)}`}>
-                    {candidate.application_status}
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(candidate.status)}`}>
+                    {candidate.status}
                   </span>
                   
                   <div className="flex items-center text-xs text-gray-500">
                     <CalendarIcon className="w-3 h-3 mr-1" />
-                    <span>Applied {getTimeAgo(candidate.applied_date)}</span>
+                    <span>Applied {getTimeAgo(candidate.applied_at)}</span>
                   </div>
 
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleViewCandidate(candidate.applicant_id);
+                      handleViewCandidate(candidate.id);
                     }}
                     className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >

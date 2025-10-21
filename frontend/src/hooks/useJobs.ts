@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { jobsService } from '@/lib/api/jobsService';
-import { Job, Candidate } from '@/types';
+import { Job, Candidate, Application } from '@/types';
 
 export const useJobs = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +52,7 @@ export const useJobs = () => {
   }, []);
  
 
-  const fetchJobCandidates = useCallback(async (jobId: number): Promise<Candidate[]> => {
+  const fetchJobCandidates = useCallback(async (jobId: number): Promise<Application[]> => {
     setIsLoading(true);
     setError(null);
     try {

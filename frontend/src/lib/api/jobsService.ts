@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import { Job, JobFormData, JobCreatePayload, Skill, Certificate, Degree, Candidate } from '@/types';
+import { Job, JobFormData, JobCreatePayload, Skill, Certificate, Degree, Candidate, Application } from '@/types';
 
 export const jobsService = {
   // Job operations
@@ -31,7 +31,7 @@ export const jobsService = {
   
   // Applications operations
   getJobApplications: (jobId: number) => 
-    api.get<Candidate[]>(`/applications/job/${jobId}/`),
+    api.get<Application[]>(`/applications/job/${jobId}/`),
 };
 
 // Helper function to transform form data to API payload

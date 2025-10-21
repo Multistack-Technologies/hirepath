@@ -37,7 +37,7 @@ export default function JobDetails() {
   };
 
   const handleEditJob = () => {
-    router.push(`/recruiter/jobs/edit/${jobId}`);
+    router.push(`/jobs/edit/${jobId}`);
   };
 
   // Show loading state while checking authentication

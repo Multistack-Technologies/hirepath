@@ -1,11 +1,11 @@
 // hooks/useJobDetails.ts
 import { useState, useEffect } from 'react';
-import { Job, Candidate } from '@/types';
+import { Job, Application } from '@/types';
 import { useJobs } from './useJobs';
 
 interface UseJobDetailsReturn {
   job: Job | null;
-  candidates: Candidate[];
+  candidates: Application[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -13,7 +13,7 @@ interface UseJobDetailsReturn {
 
 export function useJobDetails(jobId: number) {
   const [job, setJob] = useState<Job | null>(null);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [candidates, setCandidates] = useState<Application[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { fetchMyDetails, fetchJobCandidates, isLoading } = useJobs();
 
