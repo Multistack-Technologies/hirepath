@@ -62,7 +62,7 @@ class Application(models.Model):
             applicant_educations = self.applicant.educations.all()
             preferred_courses = self.job.courses_preferred.all()
             
-            if preferred_courses:
+            if preferred_courses.exists():
                 education_match = self.calculate_education_match(applicant_educations, preferred_courses)
                 total_score += education_match * 30
                 criteria_count += 1
@@ -71,7 +71,7 @@ class Application(models.Model):
             applicant_certificates = self.applicant.certificates.all()
             preferred_certificates = self.job.certificates_preferred.all()
             
-            if preferred_certificates:
+            if preferred_certificates.exists():
                 cert_match = self.calculate_certificate_match(applicant_certificates, preferred_certificates)
                 total_score += cert_match * 20
                 criteria_count += 1
@@ -94,10 +94,10 @@ class Application(models.Model):
 
     def calculate_education_match(self, applicant_educations, preferred_courses):
         """Calculate education match based on degrees and fields of study"""
-        if not applicant_educations:
+        if not applicant_educations.exists():
             return 0
         
-        applicant_degrees = set(edu.degree.name for edu in applicant_educations)
+        applicant_degrees = set(edu.degree.name for edu in applicant_educations if edu.degree)
         preferred_degree_names = set(course.name for course in preferred_courses)
         
         if not preferred_degree_names:
@@ -108,10 +108,10 @@ class Application(models.Model):
 
     def calculate_certificate_match(self, applicant_certs, preferred_certs):
         """Calculate certificate match"""
-        if not applicant_certs:
+        if not applicant_certs.exists():
             return 0
             
-        applicant_cert_names = set(cert.provider.name for cert in applicant_certs)
+        applicant_cert_names = set(cert.provider.name for cert in applicant_certs if cert.provider)
         preferred_cert_names = set(cert.name for cert in preferred_certs)
         
         if not preferred_cert_names:
@@ -122,31 +122,34 @@ class Application(models.Model):
 
     def calculate_experience_match(self):
         """Calculate experience level match"""
-        experience_mapping = {
-            'ENTRY': 1,
-            'MID': 2, 
-            'SENIOR': 3,
-            'LEAD': 4
-        }
-        
-        job_experience = experience_mapping.get(self.job.experience_level, 1)
-        
-        # Simple experience calculation based on work experience duration
-        user_experience = self.applicant.work_experiences.aggregate(
-            total_months=models.Sum('duration_months')
-        )['total_months'] or 0
-        
-        user_experience_years = user_experience / 12
-        
-        # Map years to experience levels
-        if user_experience_years >= 5:
-            user_level = 3  # Senior
-        elif user_experience_years >= 2:
-            user_level = 2  # Mid
-        else:
-            user_level = 1  # Entry
+        try:
+            experience_mapping = {
+                'ENTRY': 1,
+                'MID': 2, 
+                'SENIOR': 3,
+                'LEAD': 4
+            }
             
-        return min(user_level / job_experience, 1.0)
+            job_experience = experience_mapping.get(self.job.experience_level, 1)
+            
+            # Simple experience calculation based on work experience duration
+            user_experience = self.applicant.work_experiences.aggregate(
+                total_months=models.Sum('duration_months')
+            )['total_months'] or 0
+            
+            user_experience_years = user_experience / 12
+            
+            # Map years to experience levels
+            if user_experience_years >= 5:
+                user_level = 3  # Senior
+            elif user_experience_years >= 2:
+                user_level = 2  # Mid
+            else:
+                user_level = 1  # Entry
+                
+            return min(user_level / job_experience, 1.0)
+        except Exception:
+            return 0.0
 
     def calculate_match_details(self):
         """Enhanced match details with comprehensive analysis"""
@@ -171,10 +174,10 @@ class Application(models.Model):
             applicant_educations = self.applicant.educations.all()
             preferred_courses = self.job.courses_preferred.all()
             
-            if preferred_courses:
+            if preferred_courses.exists():
                 details["education_match"] = {
                     "has_required_education": any(
-                        edu.degree in preferred_courses for edu in applicant_educations
+                        edu.degree in preferred_courses for edu in applicant_educations if edu.degree
                     ),
                     "preferred_courses": [course.name for course in preferred_courses]
                 }
@@ -183,14 +186,14 @@ class Application(models.Model):
             applicant_certificates = self.applicant.certificates.all()
             preferred_certificates = self.job.certificates_preferred.all()
             
-            if preferred_certificates:
+            if preferred_certificates.exists():
                 matched_certs = [
                     cert for cert in applicant_certificates 
-                    if cert.provider in preferred_certificates
+                    if cert.provider and cert.provider in preferred_certificates
                 ]
                 details["certificate_match"] = {
-                    "matched_certificates": [cert.provider.name for cert in matched_certs],
-                    "missing_certificates": [cert.name for cert in preferred_certificates if cert not in matched_certs]
+                    "matched_certificates": [cert.provider.name for cert in matched_certs if cert.provider],
+                    "missing_certificates": [cert.name for cert in preferred_certificates]
                 }
             
             # Generate feedback
@@ -214,14 +217,16 @@ class Application(models.Model):
         feedback = []
         
         # Skills feedback
-        skills_match_ratio = len(details["skills_matched"]) / max(len(details["skills_matched"]) + len(details["skills_missing"]), 1)
-        
-        if skills_match_ratio >= 0.8:
-            feedback.append("🎯 Excellent skills match! Your technical skills align perfectly with the job requirements.")
-        elif skills_match_ratio >= 0.6:
-            feedback.append("✅ Good skills alignment. Consider highlighting your experience with the matched skills.")
-        else:
-            feedback.append("💡 Consider developing skills in: " + ", ".join(details["skills_missing"][:3]))
+        total_skills = len(details["skills_matched"]) + len(details["skills_missing"])
+        if total_skills > 0:
+            skills_match_ratio = len(details["skills_matched"]) / total_skills
+            
+            if skills_match_ratio >= 0.8:
+                feedback.append("🎯 Excellent skills match! Your technical skills align perfectly with the job requirements.")
+            elif skills_match_ratio >= 0.6:
+                feedback.append("✅ Good skills alignment. Consider highlighting your experience with the matched skills.")
+            else:
+                feedback.append("💡 Consider developing skills in: " + ", ".join(details["skills_missing"][:3]))
         
         # Education feedback
         if details["education_match"].get("has_required_education"):

@@ -33,34 +33,58 @@ class ApplicationSerializer(serializers.ModelSerializer):
         ]
 
     def get_match_score(self, obj):
-        if obj.match_score is None:
-            obj.match_score = obj.calculate_match_score()
-            obj.save()
-        return obj.match_score
+        try:
+            if obj.match_score is None:
+                obj.match_score = obj.calculate_match_score()
+                obj.save()
+            return obj.match_score or 0
+        except Exception:
+            return 0
 
     def get_match_details(self, obj):
-        return obj.calculate_match_details()
+        try:
+            return obj.calculate_match_details()
+        except Exception:
+            return {
+                "skills_matched": [],
+                "skills_missing": [],
+                "feedback": ["Error calculating match details"]
+            }
 
     def get_company_logo(self, obj):
-        if obj.job.company.logo and hasattr(obj.job.company.logo, 'url'):
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.job.company.logo.url)
-            return obj.job.company.logo.url
-        return None
+        try:
+            if obj.job.company.logo and hasattr(obj.job.company.logo, 'url'):
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(obj.job.company.logo.url)
+                return obj.job.company.logo.url
+            return None
+        except Exception:
+            return None
 
     def get_applicant_details(self, obj):
         """Return essential applicant details for recruiters"""
-        return {
-            "location": obj.applicant.location or "Not specified",
-            "bio": obj.applicant.bio or "",
-            "linkedin_url": obj.applicant.linkedin_url or "",
-            "current_job_title": obj.applicant.job_title or "Not specified"
-        }
+        try:
+            return {
+                "location": obj.applicant.location or "Not specified",
+                "bio": obj.applicant.bio or "",
+                "linkedin_url": obj.applicant.linkedin_url or "",
+                "current_job_title": obj.applicant.job_title or "Not specified"
+            }
+        except Exception:
+            return {
+                "location": "Not specified",
+                "bio": "",
+                "linkedin_url": "",
+                "current_job_title": "Not specified"
+            }
 
     def get_can_withdraw(self, obj):
         """Check if application can be withdrawn"""
-        return obj.status in [Application.Status.PENDING, Application.Status.REVIEWED, Application.Status.SHORTLISTED]
+        try:
+            return obj.status in [Application.Status.PENDING, Application.Status.REVIEWED, Application.Status.SHORTLISTED]
+        except Exception:
+            return False
 
 class ApplicationStatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:

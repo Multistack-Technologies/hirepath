@@ -1,3 +1,4 @@
+# backend/applications/views.py
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework import generics, permissions, status
@@ -98,12 +99,26 @@ def graduate_stats(request):
         
         applications = Application.objects.filter(applicant=user)
         
+        # Fix: Proper status count aggregation
+        status_counts = applications.values('status').annotate(
+            count=Count('id')
+        )
+        applications_by_status = {
+            item['status']: item['count'] 
+            for item in status_counts
+        }
+        
+        # Fix: Calculate recent applications properly
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        
         stats = {
             'totalApplications': applications.count(),
-            'applicationsByStatus': dict(applications.values('status').annotate(count=Count('id'))),
-            'averageMatchScore': applications.aggregate(avg_score=Avg('match_score'))['avg_score'] or 0,
+            'applicationsByStatus': applications_by_status,
+            'averageMatchScore': applications.aggregate(
+                avg_score=Avg('match_score')
+            )['avg_score'] or 0,
             'recentApplications': applications.filter(
-                applied_at__gte=timezone.now() - timezone.timedelta(days=30)
+                applied_at__gte=thirty_days_ago
             ).count(),
             'topMatchedJobs': list(
                 applications.filter(match_score__gte=80)
@@ -115,7 +130,7 @@ def graduate_stats(request):
         return Response(stats)
     
     except Exception as e:
-        return Response({'error': str(e)}, status=500)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -127,23 +142,37 @@ def recruiter_stats(request):
         recruiter_jobs = Job.objects.filter(created_by=user)
         applications = Application.objects.filter(job__in=recruiter_jobs)
         
+        # Fix: Proper status count aggregation
+        status_counts = applications.values('status').annotate(
+            count=Count('id')
+        )
+        applications_by_status = {
+            item['status']: item['count'] 
+            for item in status_counts
+        }
+        
+        # Fix: Applications by job with proper annotation
+        applications_by_job = list(
+            recruiter_jobs.annotate(
+                application_count=Count('applications'),
+                avg_match_score=Avg('applications__match_score')
+            ).values('id', 'title', 'application_count', 'avg_match_score')
+        )
+        
         stats = {
             'totalJobs': recruiter_jobs.count(),
             'totalApplications': applications.count(),
-            'applicationsByStatus': dict(applications.values('status').annotate(count=Count('id'))),
-            'averageMatchScore': applications.aggregate(avg_score=Avg('match_score'))['avg_score'] or 0,
-            'applicationsByJob': list(
-                recruiter_jobs.annotate(
-                    application_count=Count('applications'),
-                    avg_match_score=Avg('applications__match_score')
-                ).values('title', 'application_count', 'avg_match_score')
-            )
+            'applicationsByStatus': applications_by_status,
+            'averageMatchScore': applications.aggregate(
+                avg_score=Avg('match_score')
+            )['avg_score'] or 0,
+            'applicationsByJob': applications_by_job
         }
         
         return Response(stats)
     
     except Exception as e:
-        return Response({'error': str(e)}, status=500)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -166,30 +195,46 @@ def recruiter_candidates(request):
             applications = applications.filter(status=status_filter)
         
         if min_match_score:
-            applications = applications.filter(match_score__gte=float(min_match_score))
+            try:
+                applications = applications.filter(
+                    match_score__gte=float(min_match_score)
+                )
+            except ValueError:
+                pass  # Ignore invalid min_score values
         
         applications = applications.order_by('-match_score', '-applied_at')
         
         candidates_data = []
         for application in applications:
-            match_details = application.calculate_match_details()
+            # Fix: Handle potential None match_score
+            current_match_score = application.match_score or 0
+            
+            # Fix: Calculate match details safely
+            try:
+                match_details = application.calculate_match_details()
+            except Exception:
+                match_details = {
+                    "skills_matched": [],
+                    "skills_missing": [],
+                    "feedback": ["Error calculating match details"]
+                }
             
             candidate_data = {
                 'application_id': application.id,
                 'applicant_id': application.applicant.id,
-                'first_name': application.applicant.first_name,
-                'last_name': application.applicant.last_name,
+                'first_name': application.applicant.first_name or 'N/A',
+                'last_name': application.applicant.last_name or 'N/A',
                 'email': application.applicant.email,
                 'location': application.applicant.location or 'Not specified',
                 'current_job_title': application.applicant.job_title or 'Not specified',
                 'applied_date': application.applied_at.strftime('%Y-%m-%d'),
-                'match_score': application.match_score or 0,
+                'match_score': current_match_score,
                 'match_details': match_details,
                 'job_title': application.job.title,
                 'company_name': application.job.company.name,
                 'application_status': application.status,
-                'cover_letter': application.cover_letter,
-                'notes': application.notes,
+                'cover_letter': application.cover_letter or '',
+                'notes': application.notes or '',
                 'interview_date': application.interview_date,
             }
             candidates_data.append(candidate_data)
@@ -204,9 +249,10 @@ def recruiter_candidates(request):
         })
     
     except Exception as e:
-        return Response({'error': str(e)}, status=500)
-    
-
+        return Response(
+            {'error': str(e)}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 # Graduate views specific application details - returns same object as list
 class ApplicationDetailView(generics.RetrieveAPIView):

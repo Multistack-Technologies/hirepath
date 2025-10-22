@@ -36,7 +36,7 @@ class RecruitmentReport(models.Model):
     filters_applied = models.JSONField(default=dict, blank=True)
     
     # Report data
-    report_data = models.JSONField()
+    report_data = models.JSONField(default=dict)
     
     # Export information
     export_format = models.CharField(max_length=10, choices=EXPORT_FORMATS, blank=True, null=True)
@@ -75,23 +75,38 @@ class DashboardView(models.Model):
 
 class AnalyticsExport(models.Model):
     """Track export requests and results"""
+    EXPORT_TYPES = [
+        ('APPLICATIONS', 'Applications'),
+        ('CANDIDATES', 'Candidates'),
+        ('JOBS', 'Jobs'),
+        ('ANALYTICS', 'Analytics')
+    ]
+    
+    FORMAT_CHOICES = [
+        ('EXCEL', 'Excel'),
+        ('CSV', 'CSV'),
+        ('PDF', 'PDF'),
+        ('JSON', 'JSON')
+    ]
+    
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('COMPLETED', 'Completed'),
+        ('FAILED', 'Failed')
+    ]
+    
     recruiter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exports")
-    export_type = models.CharField(max_length=50)
+    export_type = models.CharField(max_length=20, choices=EXPORT_TYPES)
     filters = models.JSONField(default=dict)
-    format = models.CharField(max_length=10, choices=RecruitmentReport.EXPORT_FORMATS)
+    format = models.CharField(max_length=10, choices=FORMAT_CHOICES, default='EXCEL')
     file = models.FileField(upload_to='exports/', blank=True, null=True)
-    status = models.CharField(
-        max_length=20,
-        choices=[
-            ('PENDING', 'Pending'),
-            ('PROCESSING', 'Processing'),
-            ('COMPLETED', 'Completed'),
-            ('FAILED', 'Failed')
-        ],
-        default='PENDING'
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(blank=True, null=True)
     
     class Meta:
         ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.export_type} - {self.recruiter.username}"
