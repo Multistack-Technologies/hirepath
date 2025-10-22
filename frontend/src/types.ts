@@ -70,12 +70,6 @@ export interface Skill {
 }
 
 
-export interface RecruiterStats {
-  totalJobs: number;
-  activeApplications: number;
-  shortlisted: number;
-  hired: number;
-}
 
 export interface GraduateStats {
   totalJobs: number;

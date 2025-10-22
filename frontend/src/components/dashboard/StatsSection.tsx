@@ -1,12 +1,8 @@
 // components/dashboard/StatsSection.tsx
 import StatWidget from '@/components/StatWidget';
+import { RecruiterStats } from '@/types';
 
-interface RecruiterStats {
-  totalJobs: number;
-  activeApplications: number;
-  shortlisted: number;
-  hired: number;
-}
+
 
 interface StatsSectionProps {
   stats: RecruiterStats;
@@ -23,19 +19,19 @@ export default function StatsSection({ stats }: StatsSectionProps) {
       />
       <StatWidget 
         title="Active Applications" 
-        value={stats.activeApplications} 
+        value={stats.applicationsByStatus.PENDING} 
         color="purple" 
         description="Pending reviews"
       />
       <StatWidget 
         title="Shortlisted" 
-        value={stats.shortlisted} 
+        value={stats.applicationsByStatus.SHORTLISTED} 
         color="orange" 
         description="Candidates in review"
       />
       <StatWidget 
         title="Hired" 
-        value={stats.hired} 
+        value={stats.applicationsByStatus.ACCEPTED} 
         color="indigo" 
         description="Successful placements"
       />

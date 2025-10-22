@@ -1,14 +1,9 @@
 // hooks/useRecruiterData.ts
 import { useState, useEffect } from 'react';
-import { Candidate } from '@/types';
+import { Candidate, RecruiterStats } from '@/types';
 import api from '@/lib/api';
 
-interface RecruiterStats {
-  totalJobs: number;
-  activeApplications: number;
-  shortlisted: number;
-  hired: number;
-}
+
 
 interface UseRecruiterDataReturn {
   stats: RecruiterStats;
@@ -24,9 +19,23 @@ export function useRecruiterData(): UseRecruiterDataReturn {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [stats, setStats] = useState<RecruiterStats>({
     totalJobs: 0,
-    activeApplications: 0,
-    shortlisted: 0,
-    hired: 0,
+    totalApplications :0,
+    applicationsByStatus : {
+      PENDING: 0,
+      REVIEWED: 0,
+      SHORTLISTED: 0,
+      INTERVIEW: 0,
+      ACCEPTED: 0,
+      REJECTED: 0,
+      WITHDRAWN: 0
+    },
+    averageMatchScore:0,
+    applicationsByJob : [{
+      title: '',
+      application_count: 0,
+      avg_match_score: 0
+    }]
+
   });
 
   const fetchRecruiterData = async () => {
