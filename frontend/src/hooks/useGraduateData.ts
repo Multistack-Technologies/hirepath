@@ -1,14 +1,9 @@
 // hooks/useGraduateData.ts
 import { useState, useEffect } from 'react';
-import { Job } from '@/types';
+import { GraduateStats, Job } from '@/types';
 import api from '@/lib/api';
 
-interface GraduateStats {
-  totalJobs: number;
-  activeApplications: number;
-  shortlisted: number;
-  hired: number;
-}
+
 
 interface UseGraduateDataReturn {
   stats: GraduateStats;
@@ -23,10 +18,23 @@ export function useGraduateData(): UseGraduateDataReturn {
   const [error, setError] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<GraduateStats>({
-    totalJobs: 0,
-    activeApplications: 0,
-    shortlisted: 0,
-    hired: 0,
+    totalApplications :0,
+    averageMatchScore : 0,
+    recentApplications : 0,
+    applicationsByStatus :{
+      PENDING: 0,
+      REVIEWED: 0,
+      SHORTLISTED: 0,
+      INTERVIEW: 0,
+      ACCEPTED: 0,
+      REJECTED: 0,
+      WITHDRAWN: 0
+    },
+    topMatchedJobs:[{
+      job__title: '',
+      match_score: 0
+    }]
+
   });
 
   const fetchGraduateData = async () => {

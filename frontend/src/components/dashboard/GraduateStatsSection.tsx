@@ -1,12 +1,7 @@
 // components/dashboard/GraduateStatsSection.tsx
 import StatWidget from '@/components/StatWidget';
+import { GraduateStats } from '@/types';
 
-interface GraduateStats {
-  totalJobs: number;
-  activeApplications: number;
-  shortlisted: number;
-  hired: number;
-}
 
 interface GraduateStatsSectionProps {
   stats: GraduateStats;
@@ -16,26 +11,26 @@ export default function GraduateStatsSection({ stats }: GraduateStatsSectionProp
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       <StatWidget 
-        title="Total Jobs" 
-        value={stats.totalJobs} 
+        title="Total Applications" 
+        value={stats.totalApplications} 
         color="blue" 
-        description="Available positions"
+        description="Total applications applied"
       />
       <StatWidget 
         title="Active Applications" 
-        value={stats.activeApplications} 
+        value={stats.applicationsByStatus.PENDING} 
         color="purple" 
         description="Your pending applications"
       />
       <StatWidget 
         title="Shortlisted" 
-        value={stats.shortlisted} 
+        value={stats.applicationsByStatus.SHORTLISTED} 
         color="orange" 
         description="Applications in review"
       />
       <StatWidget 
         title="Hired" 
-        value={stats.hired} 
+        value={stats.applicationsByStatus.ACCEPTED} 
         color="indigo" 
         description="Successful placements"
       />

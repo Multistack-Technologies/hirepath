@@ -70,15 +70,6 @@ export interface Skill {
 }
 
 
-
-export interface GraduateStats {
-  totalJobs: number;
-  activeApplications: number;
-  shortlisted: number;
-  hired: number;
-}
-
-
 // types/index.ts
 export interface ResumeAnalysis {
   score: number;
