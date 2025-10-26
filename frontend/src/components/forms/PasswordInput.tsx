@@ -35,7 +35,7 @@ export default function PasswordInput({
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">
         {label}
       </label>
-      <div className="relative">
+      <div className="!relative">
         <TextField
           id={id}
           type={showPassword ? 'text' : 'password'}
@@ -44,12 +44,12 @@ export default function PasswordInput({
           required={required}
           placeholder={placeholder}
           disabled={disabled}
-          className={`border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 pr-10 ${className}`}
+          className={`${className}`} // Keep padding for icon space
         />
         <button
           type="button"
           onClick={togglePasswordVisibility}
-          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+          className="!absolute !inset-y-0 !right-0 !pr-3 !flex items-center text-gray-400 hover:text-gray-600 transition-colors"
           disabled={disabled}
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
