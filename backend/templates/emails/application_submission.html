@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9fafb; }
+        .footer { padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+        .match-score { background: #10b981; color: white; padding: 10px; border-radius: 5px; text-align: center; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Application Submitted!</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{{ applicant_name }}</strong>,</p>
+            <p>Your application for <strong>{{ job_title }}</strong> at <strong>{{ company_name }}</strong> has been successfully submitted.</p>
+            
+            {% if match_score %}
+            <div class="match-score">
+                <h3>Your Match Score: {{ match_score }}%</h3>
+                <p>Our AI has analyzed your profile against the job requirements.</p>
+            </div>
+            {% endif %}
+            
+            <p><strong>Application Details:</strong></p>
+            <ul>
+                <li>Position: {{ job_title }}</li>
+                <li>Company: {{ company_name }}</li>
+                <li>Submitted: {{ application_date }}</li>
+                <li>Application ID: {{ application_id }}</li>
+            </ul>
+            
+            <p>We'll review your application and get back to you soon. You can check your application status in your dashboard.</p>
+        </div>
+        <div class="footer">
+            <p>Thank you for using {{ site_name }}</p>
+            <p>If you have any questions, contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a></p>
+        </div>
+    </div>
+</body>
+</html>

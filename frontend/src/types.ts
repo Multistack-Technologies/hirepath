@@ -512,6 +512,56 @@ export interface Application {
   notes: string | null;
   interview_date: string | null; // ISO date string
   can_withdraw: boolean;
+  ai_analysis?: AIAnalysis | null;
+  ai_feedback?: string;
+  is_highly_matched?: boolean;
+  needs_improvement?: boolean;
+  status_timeline?: {
+    applied: string;
+    last_updated: string;
+    interview_scheduled: string | null;
+  };
+}
+
+export interface SkillsAssessment {
+  matched_skills: string[];
+  missing_skills: string[];
+  strength_rating: "low" | "medium" | "high" | "excellent";
+  match_percentage: number;
+}
+
+export interface EducationAssessment {
+  qualification_match: boolean;
+  relevant_degrees: string[];
+  match_quality: "poor" | "fair" | "good" | "excellent";
+}
+
+export interface CertificationAssessment {
+  relevant_certifications: string[];
+  missing_certifications: string[];
+  certification_score: number;
+}
+
+export interface ExperienceAssessment {
+  years_experience: number;
+  experience_level: "entry" | "mid" | "senior" | "expert";
+  relevant_experience: string[];
+}
+
+export interface OverallAssessment {
+  final_score: number;
+  recommendation: "strong_reject" | "consider" | "recommend" | "strong_recommend";
+  strengths: string[];
+  weaknesses: string[];
+  improvement_suggestions: string[];
+}
+
+export interface AIAnalysis {
+  skills_assessment: SkillsAssessment;
+  education_assessment: EducationAssessment;
+  certification_assessment: CertificationAssessment;
+  experience_assessment?: ExperienceAssessment;
+  overall_assessment?: OverallAssessment;
 }
 
 export type ApplicationStatus = 

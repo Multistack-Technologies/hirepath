@@ -186,3 +186,26 @@ CACHES = {
         "LOCATION": "unique-snowflake",
     }
 }
+
+# backend/settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.hirepath.co.za'  # or your SMTP server
+EMAIL_PORT = 465
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'noreply@hirepath.co.za'
+EMAIL_HOST_PASSWORD = '^ItqQT8Fl5H51f8n'
+DEFAULT_FROM_EMAIL = 'noreply@hirepath.co.za'
+SERVER_EMAIL = 'noreply@hirepath.co.za'
+
+# Custom settings
+SITE_NAME = 'Hire-path'
+SUPPORT_EMAIL = 'noreply@hirepath.co.za'
+REPLY_TO_EMAIL = 'noreply@hirepath.co.za'
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'

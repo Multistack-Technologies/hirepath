@@ -1,0 +1,22 @@
+Application Submitted
+
+Hello {{ applicant_name }},
+
+Your application for {{ job_title }} at {{ company_name }} has been successfully submitted.
+
+{% if match_score %}
+Your Match Score: {{ match_score }}%
+Our AI has analyzed your profile against the job requirements.
+{% endif %}
+
+Application Details:
+- Position: {{ job_title }}
+- Company: {{ company_name }}
+- Submitted: {{ application_date }}
+- Application ID: {{ application_id }}
+
+We'll review your application and get back to you soon. You can check your application status in your dashboard.
+
+Thank you for using {{ site_name }}
+
+If you have any questions, contact us at {{ support_email }}

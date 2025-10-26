@@ -5,6 +5,7 @@ from django.utils import timezone
 import logging
 from typing import Dict, Any
 
+from jobs.views import get_user_profile_data, get_job_data
 # Import the Gemini AI engine
 from ai.services import ai_engine
 
@@ -46,7 +47,7 @@ class Application(models.Model):
 
     def save(self, *args, **kwargs):
         # Calculate match score when application is created or if score is None
-        if not self.pk or self.match_score is None:
+        if self._state.adding or self.match_score is None:
             self.match_score, self.ai_analysis, self.ai_feedback = self.calculate_ai_match_score()
         super().save(*args, **kwargs)
 
@@ -64,9 +65,7 @@ class Application(models.Model):
             for edu in self.applicant.educations.all():
                 profile_data["educations"].append({
                     "degree": edu.degree.name if edu.degree else "",
-                    "institution": edu.institution,
-                    "field_of_study": edu.field_of_study,
-                    "graduation_year": edu.graduation_year
+                    "institution": edu.university.name
                 })
             
             # Work experience data (for context)
@@ -81,9 +80,9 @@ class Application(models.Model):
             # Certificates
             for cert in self.applicant.certificates.all():
                 profile_data["certificates"].append({
-                    "name": cert.name,
-                    "provider": cert.provider.name if cert.provider else "",
-                    "year_obtained": cert.year_obtained
+                    "name": cert.provider.name,
+                    "provider": cert.provider.issuer_name if cert.provider else "",
+                    "year_obtained": cert.issue_date
                 })
             
             return profile_data
@@ -98,13 +97,12 @@ class Application(models.Model):
             job_data = {
                 "title": self.job.title,
                 "description": self.job.description,
-                "requirements": self.job.requirements,
                 "skills_required": list(self.job.skills_required.values_list('name', flat=True)),
                 "experience_level": self.job.experience_level,
                 "courses_preferred": list(self.job.courses_preferred.values_list('name', flat=True)),
                 "certificates_preferred": list(self.job.certificates_preferred.values_list('name', flat=True)),
                 "location": self.job.location,
-                "job_type": self.job.job_type
+                "job_type": self.job.work_type
             }
             return job_data
         except Exception as e:
@@ -117,8 +115,8 @@ class Application(models.Model):
         Returns: (match_score, analysis, feedback)
         """
         try:
-            applicant_data = self.get_applicant_profile_data()
-            job_data = self.get_job_requirements_data()
+            applicant_data = get_user_profile_data(self.applicant)
+            job_data = get_job_data(self.job)
             
             if not applicant_data or not job_data:
                 return 0.0, {}, "Insufficient data for analysis"

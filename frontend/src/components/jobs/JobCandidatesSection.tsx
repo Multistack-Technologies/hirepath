@@ -261,12 +261,12 @@ export default function JobCandidatesSection({
                           <span>{candidate.match_details.skills_missing.length} skills missing</span>
                         </div>
                       )}
-                      {!candidate.match_details.education_match.has_required_education && (
+                      {/* {!candidate.match_details.education_match.has_required_education && (
                         <div className="flex items-center">
                           <AcademicCapIcon className="w-3 h-3 mr-1 text-blue-500" />
                           <span>Education gap</span>
                         </div>
-                      )}
+                      )} */}
                     </div>
 
                     {/* Skills Preview */}

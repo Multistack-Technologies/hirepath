@@ -16,6 +16,12 @@ class ApplicationSerializer(serializers.ModelSerializer):
     match_details = serializers.SerializerMethodField()
     
     can_withdraw = serializers.SerializerMethodField(read_only=True)
+    ai_analysis = serializers.SerializerMethodField(read_only=True)
+    ai_feedback = serializers.SerializerMethodField(read_only=True)
+    is_highly_matched = serializers.BooleanField(read_only=True)
+    needs_improvement = serializers.BooleanField(read_only=True)
+    is_active = serializers.BooleanField(read_only=True)
+    status_timeline = serializers.SerializerMethodField(read_only=True)
    
     class Meta:
         model = Application
@@ -24,12 +30,15 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "applicant", "applicant_name", "applicant_email", "applicant_details",
             "cover_letter", "status", "applied_at", "updated_at", 
             "match_score", "match_details", "notes", "interview_date",
-            "can_withdraw"
+            "can_withdraw", "ai_analysis", "ai_feedback", "is_highly_matched",
+            "needs_improvement", "is_active", "status_timeline"
         ]
         read_only_fields = [
             "id", "status", "applied_at", "updated_at", "applicant_name", 
             "applicant_email", "job_title", "company_name", "company_logo",
-            "applicant", "match_score", "match_details", "can_withdraw"
+            "applicant", "match_score", "match_details", "can_withdraw",
+            "ai_analysis", "ai_feedback", "is_highly_matched", "needs_improvement",
+            "is_active", "status_timeline"
         ]
 
     def get_match_score(self, obj):
@@ -82,9 +91,34 @@ class ApplicationSerializer(serializers.ModelSerializer):
     def get_can_withdraw(self, obj):
         """Check if application can be withdrawn"""
         try:
-            return obj.status in [Application.Status.PENDING, Application.Status.REVIEWED, Application.Status.SHORTLISTED]
+            return obj.can_withdraw()
         except Exception:
             return False
+
+    def get_ai_analysis(self, obj):
+        """Return AI analysis data"""
+        try:
+            return obj.ai_analysis or {}
+        except Exception:
+            return {}
+
+    def get_ai_feedback(self, obj):
+        """Return AI feedback"""
+        try:
+            return obj.ai_feedback or "No AI feedback available yet"
+        except Exception:
+            return "Error retrieving AI feedback"
+
+    def get_status_timeline(self, obj):
+        """Get application status timeline"""
+        try:
+            return obj.get_status_timeline()
+        except Exception:
+            return {
+                'applied': obj.applied_at,
+                'last_updated': obj.updated_at,
+                'interview_scheduled': obj.interview_date
+            }
 
 class ApplicationStatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -95,3 +129,34 @@ class ApplicationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
         fields = ['job', 'cover_letter']
+
+class ApplicationAIAnalysisSerializer(serializers.ModelSerializer):
+    """Serializer specifically for AI analysis results"""
+    match_breakdown = serializers.SerializerMethodField()
+    improvement_suggestions = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Application
+        fields = [
+            'match_score', 'ai_analysis', 'ai_feedback', 
+            'match_breakdown', 'improvement_suggestions'
+        ]
+        read_only_fields = fields
+
+    def get_match_breakdown(self, obj):
+        """Extract match breakdown from AI analysis"""
+        try:
+            if obj.ai_analysis and 'breakdown' in obj.ai_analysis:
+                return obj.ai_analysis['breakdown']
+            return {}
+        except Exception:
+            return {}
+
+    def get_improvement_suggestions(self, obj):
+        """Extract improvement suggestions from AI analysis"""
+        try:
+            if obj.ai_analysis and 'suggestions' in obj.ai_analysis:
+                return obj.ai_analysis['suggestions']
+            return []
+        except Exception:
+            return []

@@ -25,9 +25,40 @@ import {
   AcademicCapIcon,
   TrophyIcon,
   LightBulbIcon,
-  PencilSquareIcon
+  PencilSquareIcon,
+  ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
 
+export interface AIAnalysis {
+  skills_assessment: {
+    matched_skills: string[];
+    missing_skills: string[];
+    strength_rating: "low" | "medium" | "high" | "excellent";
+    match_percentage: number;
+  };
+  education_assessment: {
+    qualification_match: boolean;
+    relevant_degrees: string[];
+    match_quality: "poor" | "fair" | "good" | "excellent";
+  };
+  certification_assessment: {
+    relevant_certifications: string[];
+    missing_certifications: string[];
+    certification_score: number;
+  };
+  experience_assessment?: {
+    years_experience: number;
+    experience_level: "entry" | "mid" | "senior" | "expert";
+    relevant_experience: string[];
+  };
+  overall_assessment?: {
+    final_score: number;
+    recommendation: "strong_reject" | "consider" | "recommend" | "strong_recommend";
+    strengths: string[];
+    weaknesses: string[];
+    improvement_suggestions: string[];
+  };
+}
 
 interface Application {
   id: number;
@@ -56,22 +87,14 @@ interface Application {
   match_details: {
     skills_matched: string[];
     skills_missing: string[];
-    education_match: {
-      has_required_education: boolean;
-      preferred_courses: string[];
-    };
-    certificate_match: {
-      matched_certificates: string[];
-      missing_certificates: string[];
-    };
-    experience_match: object;
     feedback: string[];
   };
+  ai_analysis: AIAnalysis | null;
+  ai_feedback: string;
   notes: string | null;
   interview_date: string | null;
   can_withdraw: boolean;
 }
-
 
 export default function CandidateProfile() {
   const { user } = useAuth();
@@ -93,21 +116,19 @@ export default function CandidateProfile() {
     setError(null);
 
     try {
-      console.log('Fetching candidate details for ID:', candidateId); // Debug
+      console.log('Fetching candidate details for ID:', candidateId);
       const response = await api.get(`/applications/${candidateId}/`);
       
-      console.log('Full API Response:', response); // Debug
-      console.log('Response data:', response.data); // Debug
+      console.log('Full API Response:', response);
+      console.log('AI Analysis:', response.data?.ai_analysis);
       
       if (response.data) {
         setApplication(response.data);
-        console.log('Application set:', response.data); // Debug
       } else {
-        console.error('No data in response'); // Debug
         setError("Failed to load candidate details: No data received.");
       }
     } catch (err: any) {
-      console.error('API Error:', err); // Debug
+      console.error('API Error:', err);
       const errorMessage = err.response?.data?.error || err.message || 'Failed to load candidate details';
       setError(errorMessage);
       addToast({
@@ -157,7 +178,6 @@ export default function CandidateProfile() {
   const handleQuickAction = async (action: 'REVIEWED' | 'SHORTLISTED' | 'REJECTED' | 'HIRED') => {
     setActionLoading(action);
     
-    // Show immediate toast
     const toastMessages = {
       'REVIEWED': { type: 'success' as const, title: 'Candidate marked as reviewed!' },
       'SHORTLISTED': { type: 'success' as const, title: 'Candidate shortlisted successfully!' },
@@ -188,7 +208,6 @@ export default function CandidateProfile() {
     notes?: string;
     interview_date?: string;
   }) => {
-    // Show immediate toast for modal actions
     const toastMessages = {
       'REVIEWED': { type: 'success' as const, title: 'Candidate marked as reviewed!' },
       'SHORTLISTED': { type: 'success' as const, title: 'Candidate shortlisted successfully!' },
@@ -204,7 +223,6 @@ export default function CandidateProfile() {
     await handleStatusUpdate(updateData);
   };
 
-  // Get available actions based on current status
   const getAvailableActions = () => {
     if (!application) return [];
 
@@ -216,7 +234,6 @@ export default function CandidateProfile() {
       { value: 'HIRED' as const, label: 'Hire', variant: 'success' as const, icon: StarIcon }
     ];
 
-    // Filter out current status and provide relevant actions
     return allActions.filter(action => action.value !== currentStatus);
   };
 
@@ -238,18 +255,24 @@ export default function CandidateProfile() {
     return 'text-red-600 bg-red-100 border-red-200';
   };
 
-  const getFeedbackColor = (feedbackItem: string): string => {
-    if (feedbackItem.includes("💡")) return "text-blue-600 bg-blue-50 border-blue-200";
-    if (feedbackItem.includes("🎓")) return "text-purple-600 bg-purple-50 border-purple-200";
-    if (feedbackItem.includes("📜")) return "text-orange-600 bg-orange-50 border-orange-200";
-    return "text-gray-600 bg-gray-50 border-gray-200";
+  const getStrengthRatingColor = (rating: string) => {
+    const colors = {
+      'low': 'text-red-600 bg-red-100 border-red-200',
+      'medium': 'text-yellow-600 bg-yellow-100 border-yellow-200',
+      'high': 'text-green-600 bg-green-100 border-green-200',
+      'excellent': 'text-emerald-600 bg-emerald-100 border-emerald-200'
+    };
+    return colors[rating as keyof typeof colors] || 'text-gray-600 bg-gray-100 border-gray-200';
   };
 
-  const getFeedbackIcon = (feedbackItem: string) => {
-    if (feedbackItem.includes("💡")) return LightBulbIcon;
-    if (feedbackItem.includes("🎓")) return AcademicCapIcon;
-    if (feedbackItem.includes("📜")) return TrophyIcon;
-    return LightBulbIcon;
+  const getMatchQualityColor = (quality: string) => {
+    const colors = {
+      'poor': 'text-red-600 bg-red-100 border-red-200',
+      'fair': 'text-yellow-600 bg-yellow-100 border-yellow-200',
+      'good': 'text-green-600 bg-green-100 border-green-200',
+      'excellent': 'text-emerald-600 bg-emerald-100 border-emerald-200'
+    };
+    return colors[quality as keyof typeof colors] || 'text-gray-600 bg-gray-100 border-gray-200';
   };
 
   const formatDate = (dateString: string) => {
@@ -399,8 +422,6 @@ export default function CandidateProfile() {
           </div>
         ) : (
           <div className="space-y-6">
-
-
             {/* Candidate Profile Card */}
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
               <div className="flex items-start justify-between mb-6">
@@ -452,10 +473,11 @@ export default function CandidateProfile() {
                       </div>
                     )}
 
-                    {/* Skills Preview */}
-                    {application.match_details?.skills_matched && application.match_details.skills_matched.length > 0 && (
+                    {/* Skills Preview from AI Analysis */}
+                    {application.ai_analysis?.skills_assessment?.matched_skills && 
+                     application.ai_analysis.skills_assessment.matched_skills.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
-                        {application.match_details.skills_matched.slice(0, 6).map((skill, index) => (
+                        {application.ai_analysis.skills_assessment.matched_skills.slice(0, 6).map((skill, index) => (
                           <span
                             key={index}
                             className="px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-medium border border-green-200"
@@ -463,9 +485,9 @@ export default function CandidateProfile() {
                             {skill}
                           </span>
                         ))}
-                        {application.match_details.skills_matched.length > 6 && (
+                        {application.ai_analysis.skills_assessment.matched_skills.length > 6 && (
                           <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium border border-gray-200">
-                            +{application.match_details.skills_matched.length - 6} more
+                            +{application.ai_analysis.skills_assessment.matched_skills.length - 6} more
                           </span>
                         )}
                       </div>
@@ -474,7 +496,7 @@ export default function CandidateProfile() {
                 </div>
               </div>
 
-              {/* Application Details */}
+              {/* Application Details with AI Analysis */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Job Details</h4>
@@ -496,22 +518,32 @@ export default function CandidateProfile() {
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Match Analysis</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">AI Match Analysis</h4>
                   <div className="space-y-2 text-gray-600">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Skills Matched:</span>
-                      <span className="text-sm font-medium">{application.match_details?.skills_matched?.length || 0}</span>
+                      <span className="text-sm font-medium">
+                        {application.ai_analysis?.skills_assessment?.matched_skills?.length || 0}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Skills Missing:</span>
-                      <span className="text-sm font-medium">{application.match_details?.skills_missing?.length || 0}</span>
+                      <span className="text-sm font-medium">
+                        {application.ai_analysis?.skills_assessment?.missing_skills?.length || 0}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Education Match:</span>
                       <span className={`text-sm font-medium ${
-                        application.match_details?.education_match?.has_required_education ? 'text-green-600' : 'text-orange-600'
+                        application.ai_analysis?.education_assessment?.qualification_match ? 'text-green-600' : 'text-orange-600'
                       }`}>
-                        {application.match_details?.education_match?.has_required_education ? 'Yes' : 'No'}
+                        {application.ai_analysis?.education_assessment?.qualification_match ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Certification Score:</span>
+                      <span className="text-sm font-medium">
+                        {application.ai_analysis?.certification_assessment?.certification_score || 0}%
                       </span>
                     </div>
                   </div>
@@ -549,45 +581,202 @@ export default function CandidateProfile() {
               </div>
             </div>
 
-            {/* AI Feedback Section */}
-            {application.match_details?.feedback && application.match_details.feedback.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <SparklesIcon className="w-5 h-5 text-purple-600" />
-                  AI Analysis & Recommendations
-                </h3>
-
-                <div className="space-y-3">
-                  {application.match_details.feedback.map((point, index) => {
-                    const FeedbackIcon = getFeedbackIcon(point);
-                    return (
-                      <div
-                        key={index}
-                        className={`flex items-start gap-3 p-3 rounded-xl border ${getFeedbackColor(point)}`}
-                      >
-                        <FeedbackIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm leading-relaxed">{point}</span>
+            {/* Detailed AI Analysis Section */}
+            {application.ai_analysis && (
+              <div className="space-y-6">
+                {/* Skills Assessment */}
+                <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <SparklesIcon className="w-5 h-5 text-purple-600" />
+                    Skills Assessment
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Matched Skills */}
+                    <div>
+                      <h4 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
+                        <CheckBadgeIcon className="w-4 h-4" />
+                        Matched Skills ({application.ai_analysis.skills_assessment.matched_skills.length})
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {application.ai_analysis.skills_assessment.matched_skills.map((skill, index) => (
+                          <span
+                            key={index}
+                            className="px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-medium border border-green-200"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {application.ai_analysis.skills_assessment.matched_skills.length === 0 && (
+                          <span className="text-sm text-gray-500">No skills matched</span>
+                        )}
                       </div>
-                    );
-                  })}
+                    </div>
+
+                    {/* Missing Skills */}
+                    <div>
+                      <h4 className="font-semibold text-orange-700 mb-3 flex items-center gap-2">
+                        <ExclamationTriangleIcon className="w-4 h-4" />
+                        Missing Skills ({application.ai_analysis.skills_assessment.missing_skills.length})
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {application.ai_analysis.skills_assessment.missing_skills.map((skill, index) => (
+                          <span
+                            key={index}
+                            className="px-2.5 py-1 bg-orange-50 text-orange-700 rounded-lg text-xs font-medium border border-orange-200"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {application.ai_analysis.skills_assessment.missing_skills.length === 0 && (
+                          <span className="text-sm text-gray-500">No missing skills</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Strength Rating */}
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">Strength Rating:</span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStrengthRatingColor(application.ai_analysis.skills_assessment.strength_rating)}`}>
+                        {application.ai_analysis.skills_assessment.strength_rating.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-sm font-medium text-gray-700">Skills Match Percentage:</span>
+                      <span className="text-sm font-bold text-blue-600">
+                        {application.ai_analysis.skills_assessment.match_percentage}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Missing Skills */}
-                {application.match_details.skills_missing && application.match_details.skills_missing.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="font-semibold text-gray-900 mb-3">Skills to Develop</h4>
-                    <div className="flex flex-wrap gap-1.5">
-                      {application.match_details.skills_missing.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="px-2.5 py-1 bg-orange-50 text-orange-700 rounded-lg text-xs font-medium border border-orange-200"
-                        >
-                          {skill}
+                {/* Education Assessment */}
+                {application.ai_analysis.education_assessment && (
+                  <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <AcademicCapIcon className="w-5 h-5 text-blue-600" />
+                      Education Assessment
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2">Qualification Match</h4>
+                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${
+                          application.ai_analysis.education_assessment.qualification_match 
+                            ? 'text-green-600 bg-green-100 border-green-200' 
+                            : 'text-red-600 bg-red-100 border-red-200'
+                        }`}>
+                          {application.ai_analysis.education_assessment.qualification_match ? 'MATCHED' : 'NOT MATCHED'}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2">Match Quality</h4>
+                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getMatchQualityColor(application.ai_analysis.education_assessment.match_quality)}`}>
+                          {application.ai_analysis.education_assessment.match_quality.toUpperCase()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Relevant Degrees */}
+                    {application.ai_analysis.education_assessment.relevant_degrees.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="font-semibold text-gray-700 mb-2">Relevant Degrees</h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {application.ai_analysis.education_assessment.relevant_degrees.map((degree, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium border border-blue-200"
+                            >
+                              {degree}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Certification Assessment */}
+                {application.ai_analysis.certification_assessment && (
+                  <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <TrophyIcon className="w-5 h-5 text-yellow-600" />
+                      Certification Assessment
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Relevant Certifications */}
+                      <div>
+                        <h4 className="font-semibold text-green-700 mb-3">
+                          Relevant Certifications ({application.ai_analysis.certification_assessment.relevant_certifications.length})
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {application.ai_analysis.certification_assessment.relevant_certifications.map((cert, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-medium border border-green-200"
+                            >
+                              {cert}
+                            </span>
+                          ))}
+                          {application.ai_analysis.certification_assessment.relevant_certifications.length === 0 && (
+                            <span className="text-sm text-gray-500">No relevant certifications</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Missing Certifications */}
+                      <div>
+                        <h4 className="font-semibold text-orange-700 mb-3">
+                          Missing Certifications ({application.ai_analysis.certification_assessment.missing_certifications.length})
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {application.ai_analysis.certification_assessment.missing_certifications.map((cert, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-1 bg-orange-50 text-orange-700 rounded-lg text-xs font-medium border border-orange-200"
+                            >
+                              {cert}
+                            </span>
+                          ))}
+                          {application.ai_analysis.certification_assessment.missing_certifications.length === 0 && (
+                            <span className="text-sm text-gray-500">No missing certifications</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Certification Score */}
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">Certification Score:</span>
+                        <span className="text-sm font-bold text-blue-600">
+                          {application.ai_analysis.certification_assessment.certification_score}%
                         </span>
-                      ))}
+                      </div>
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* AI Feedback Section */}
+            {application.ai_feedback && (
+              <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <LightBulbIcon className="w-5 h-5 text-purple-600" />
+                  AI Feedback & Recommendations
+                </h3>
+                <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                  {application.ai_feedback.split('\n').map((paragraph, index) => (
+                    <p key={index} className="mb-3 text-gray-700 text-sm">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
               </div>
             )}
 
