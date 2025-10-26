@@ -74,7 +74,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }: 
 
     try {
   
-      const response = await api.post<ResumeFeedback>('/resumes/analyze/', formData, {
+      const response = await api.post<ResumeFeedback>('/resumes/upload/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data', // Important for file uploads
         },

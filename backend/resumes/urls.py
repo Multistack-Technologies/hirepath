@@ -1,11 +1,8 @@
-# backend/resumes/urls.py
 from django.urls import path
-from .views import get_latest_resume_analysis, job_role_recommendations, certificate_recommendations, career_insights, upload_and_analyze_resume
+from .views import upload_and_analyze_resume, get_latest_resume, get_job_role_recommendations
 
 urlpatterns = [
-    path('analyze/', upload_and_analyze_resume, name='upload_and_analyze_resume'),
-    path('analysis/', get_latest_resume_analysis, name='get_latest_resume_analysis'),
-    path('recommendations/job-roles/', job_role_recommendations, name='job-role-recommendations'),
-    path('recommendations/certificates/', certificate_recommendations, name='certificate-recommendations'),
-    path('recommendations/insights/', career_insights, name='career-insights'),
+    path("upload/", upload_and_analyze_resume, name="upload_and_analyze_resume"),
+    path("latest/", get_latest_resume, name="get_latest_resume"),
+    path("recommendations/<int:resume_id>/", get_job_role_recommendations, name="get_job_role_recommendations"),
 ]

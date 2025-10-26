@@ -1,4 +1,3 @@
-// src/app/analysis/page.tsx
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
@@ -11,36 +10,78 @@ import ResumeAnalysisError from '@/components/analysis/ResumeAnalysisError';
 import BasicInfoSection from '@/components/analysis/BasicInfoSection';
 import JobAnalysisSection from '@/components/analysis/JobAnalysisSection';
 import api from '@/lib/api';
-import CoursesSection from '@/components/analysis/CoursesSection';
+import CoursesSection, { CertificateRecommendation } from '@/components/analysis/CoursesSection';
 import ResumeRatingSection from '@/components/analysis/ResumeRatingSection';
 import ResumeTipsSection from '@/components/analysis/ResumeTipsSection';
 import SkillsSection from '@/components/analysis/SkillsSection';
 
-
 interface ResumeData {
-  score: number;
-  total_score: number;
-  file_name?: string;
-  uploaded_at?: string;
-  job_matches?: Array<{
-    id: number;
-    title: string;
-    company: string;
-    match_score: number;
-  }>;
-  skills_detected?: string[];
-  missing_skills?: string[];
-  course_recommendations?: Array<{
-    id: number;
-    name: string;
-    url: string;
-    platform: string;
-  }>;
-  user?: {
-    first_name: string;
-    last_name: string;
-    email: string;
+  id: number;
+  file: string;
+  file_name: string;
+  file_type: string;
+  text: string;
+  ai_feedback: {
+    score: number;
+    match_strength: string;
+    found_skills: string[];
+    missing_skills: string[];
+    strengths: string[];
+    weaknesses: string[];
+    suggested_actions: string[];
+    certificate_recommendations : CertificateRecommendation[];
+    extracted_data: {
+      skills: Array<{
+        id: number;
+        name: string;
+      }>;
+      education: string[];
+      certificates: string[];
+      experience: string[];
+      summary: string;
+    };
+    job_role_recommendations?: Array<{
+      job_role: {
+        id: number;
+        title: string;
+        category: string;
+        category_display: string;
+        description: string;
+        is_in_demand: boolean;
+        remote_friendly: boolean;
+      };
+      match_score: number;
+      match_strength: string;
+      matching_skills: string[];
+      missing_skills: string[];
+      total_skills_required: number;
+      skills_match_percentage: number;
+      certificate_recommendations?: Array<{
+        certificate_name: string;
+        provider: string;
+        reason: string;
+        relevance_score: number;
+        skills_covered: string[];
+        estimated_duration: string;
+        difficulty_level: string;
+        provider_info: {
+          id: number;
+          name: string;
+          issuer_name: string;
+          issuer_type: string;
+          website: string;
+          is_popular: boolean;
+        };
+      }>;
+    }>;
   };
+  uploaded_at: string;
+}
+
+interface UserData {
+  first_name: string;
+  last_name: string;
+  email: string;
 }
 
 export default function ResumeAnalysis() {
@@ -57,17 +98,21 @@ export default function ResumeAnalysis() {
     setError(null);
 
     try {
-      const analysisResponse = await api.get('/resumes/analysis/');
+      const response = await api.get('/resumes/latest/');
       
-      if (analysisResponse.data) {
-        setResumeData(analysisResponse.data);
+      if (response.data?.resume) {
+        setResumeData(response.data.resume);
       } else {
-        setError("Failed to load resume analysis: Unexpected response format.");
+        setError("No resume analysis available. Please upload your resume first.");
       }
     } catch (err: any) {
       console.error("Error fetching resume analysis:", err);
-      const errorMessage = err.response?.data?.error || err.message || 'Failed to load resume analysis';
-      setError(errorMessage);
+      if (err.response?.status === 404) {
+        setError("No resume found. Please upload your resume to get analysis.");
+      } else {
+        const errorMessage = err.response?.data?.error || err.message || 'Failed to load resume analysis';
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -141,11 +186,9 @@ export default function ResumeAnalysis() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column */}
           <div className="space-y-6">
-            <BasicInfoSection user={resumeData.user} />
-            <JobAnalysisSection jobMatches={resumeData.job_matches} />
             <SkillsSection 
-              skillsDetected={resumeData.skills_detected}
-              missingSkills={resumeData.missing_skills}
+              skillsDetected={resumeData.ai_feedback.found_skills}
+              missingSkills={resumeData.ai_feedback.missing_skills}
               onAddSkills={handleAddSkills}
             />
           </div>
@@ -153,18 +196,23 @@ export default function ResumeAnalysis() {
           {/* Right Column */}
           <div className="space-y-6">
             <ResumeRatingSection 
-              score={resumeData.score}
-              totalScore={resumeData.total_score}
+              score={resumeData.ai_feedback.score}
+              matchStrength={resumeData.ai_feedback.match_strength}
               fileName={resumeData.file_name}
               uploadedAt={resumeData.uploaded_at}
               onUpload={handleUploadResume}
+              strengths={resumeData.ai_feedback.strengths}
+              weaknesses={resumeData.ai_feedback.weaknesses}
             />
-            <CoursesSection 
-              recommendations={resumeData.course_recommendations}
+            {/* <CoursesSection 
+              jobRoleRecommendations={resumeData.ai_feedback.certificate_recommendations || []}
               courseCount={courseCount}
               onCourseCountChange={setCourseCount}
+            /> */}
+            <ResumeTipsSection 
+              onAddCertificates={handleAddCertificates}
+              suggestedActions={resumeData.ai_feedback.suggested_actions}
             />
-            <ResumeTipsSection onAddCertificates={handleAddCertificates} />
           </div>
         </div>
       )}

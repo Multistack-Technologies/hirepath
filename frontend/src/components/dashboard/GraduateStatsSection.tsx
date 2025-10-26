@@ -13,7 +13,7 @@ export default function GraduateStatsSection({ stats }: GraduateStatsSectionProp
       <StatWidget 
         title="Total Applications" 
         value={stats.totalApplications} 
-        color="blue" 
+        color="blue"  
         description="Total applications applied"
       />
       <StatWidget 

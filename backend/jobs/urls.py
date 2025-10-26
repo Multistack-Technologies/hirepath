@@ -3,7 +3,8 @@ from .views import (
     JobDetailView, 
     JobListCreateView,
     JobPublicDetailView, 
-    MyJobListView, 
+    MyJobListView,
+    analyze_job, 
     ping, 
     active_jobs, 
     job_categories,
@@ -19,4 +20,5 @@ urlpatterns = [
     path("me/", MyJobListView.as_view(), name="my-job-list"),
     path("<int:pk>/", JobDetailView.as_view(), name="job-detail"),
     path("details/<int:pk>/", JobPublicDetailView.as_view(), name="job-public-detail"), 
+    path("<int:job_id>/analyze/", analyze_job, name="job-analyze"),
 ]

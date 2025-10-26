@@ -209,7 +209,7 @@ export default function JobDetailPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                onClick={() => router.push("/jobs")}
+                onClick={() => router.push("/Myjobs")}
                 variant="primary"
                 size="lg"
                 className="px-6"
@@ -445,150 +445,182 @@ export default function JobDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="space-y-6 sticky top-6">
-              {/* Action Card */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <div className="space-y-3">
-                  {job.is_active ? (
-                    <>
-                      <Button
-                        variant="primary"
-                        size="lg"
-                        onClick={handleApply}
-                        isLoading={isApplying}
-                        disabled={isApplying}
-                        className="w-full py-3 font-semibold shadow-lg hover:shadow-xl text-base"
-                      >
-                        {isApplying ? (
-                          <span className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            Applying...
-                          </span>
-                        ) : (
-                          "APPLY NOW"
-                        )}
-                      </Button>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={handleBookmark}
-                          className="flex-1"
-                          icon={<BookmarkIcon className={`w-4 h-4 ${isBookmarked ? 'fill-yellow-400 text-yellow-400' : ''}`} />}
-                        >
-                          {isBookmarked ? "Saved" : "Save"}
-                        </Button>
-                        <Button
-                          variant="tertiary"
-                          size="sm"
-                          onClick={handleShare}
-                          className="flex-1"
-                          icon={<ShareIcon className="w-4 h-4" />}
-                        >
-                          Share
-                        </Button>
-                      </div>
-                      <div className="text-center pt-2">
-                        <p className="text-xs text-gray-600">
-                          <span className="font-semibold text-gray-900">{job.applications_count || 0}</span> people have applied
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-                        <div className="text-base font-semibold text-red-700 mb-1">
-                          Position Closed
-                        </div>
-                        <div className="text-xs text-red-600">
-                          This job is no longer accepting applications
-                        </div>
-                      </div>
-                      <Button
-                        variant="secondary"
-                        size="lg"
-                        onClick={() => router.push("/jobs")}
-                        className="w-full py-3 font-semibold text-base"
-                      >
-                        Browse Other Jobs
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
+              <div className="lg:col-span-1">
+  <div className="space-y-6 sticky top-6">
+    {/* Action Card */}
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+      <div className="space-y-3">
+        {job.is_active ? (
+          <>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleApply}
+              isLoading={isApplying}
+              disabled={isApplying}
+              className="w-full py-3 font-semibold shadow-lg hover:shadow-xl text-base"
+            >
+              {isApplying ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Applying...
+                </span>
+              ) : (
+                "APPLY NOW"
+              )}
+            </Button>
+            
+            {/* Analyze Match Button */}
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => router.push(`/Myjobs/${job.id}/analysis`)}
+              className="w-full py-3 font-semibold text-base border-2 border-indigo-200 hover:border-indigo-300 bg-white text-indigo-700 hover:bg-indigo-50"
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              }
+            >
+              Analyze Match
+            </Button>
 
-              {/* Company Info Card */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <BuildingOfficeIcon className="w-4 h-4 text-blue-600" />
-                  About the Company
-                </h3>
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-lg">
-                    {job.company_name?.charAt(0) || "C"}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 text-sm">
-                      {job.company_name}
-                    </h4>
-                    <p className="text-xs text-gray-600 flex items-center gap-1">
-                      <MapPinIcon className="w-3 h-3" />
-                      {job.location}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => router.push(`/companies/${job.company}`)}
-                >
-                  View Company Profile
-                </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleBookmark}
+                className="flex-1"
+                icon={<BookmarkIcon className={`w-4 h-4 ${isBookmarked ? 'fill-yellow-400 text-yellow-400' : ''}`} />}
+              >
+                {isBookmarked ? "Saved" : "Save"}
+              </Button>
+              <Button
+                variant="tertiary"
+                size="sm"
+                onClick={handleShare}
+                className="flex-1"
+                icon={<ShareIcon className="w-4 h-4" />}
+              >
+                Share
+              </Button>
+            </div>
+            <div className="text-center pt-2">
+              <p className="text-xs text-gray-600">
+                <span className="font-semibold text-gray-900">{job.applications_count || 0}</span> people have applied
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+              <div className="text-base font-semibold text-red-700 mb-1">
+                Position Closed
               </div>
-
-              {/* Job Details Card */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-3">Job Details</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600 flex items-center gap-1 text-sm">
-                      <CalendarIcon className="w-3 h-3" />
-                      Posted
-                    </span>
-                    <span className="font-semibold text-gray-900 text-sm">
-                      {getTimeAgo(job.created_at)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600 text-sm">Employment Type</span>
-                    <span className="font-semibold text-gray-900 text-sm">
-                      {job.employment_type_display}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600 text-sm">Work Type</span>
-                    <span className="font-semibold text-gray-900 text-sm">{job.work_type_display}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600 text-sm">Experience Level</span>
-                    <span className="font-semibold text-gray-900 text-sm">
-                      {job.experience_level_display}
-                    </span>
-                  </div>
-                  {job.closing_date && (
-                    <div className="flex justify-between items-center py-1.5">
-                      <span className="text-gray-600 text-sm">Closing Date</span>
-                      <span className="font-semibold text-gray-900 text-sm">
-                        {new Date(job.closing_date).toLocaleDateString()}
-                      </span>
-                    </div>
-                  )}
-                </div>
+              <div className="text-xs text-red-600">
+                This job is no longer accepting applications
               </div>
             </div>
+            
+            {/* Analyze Match Button for Closed Jobs */}
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => router.push(`/Myjobs/${job.id}/analysis`)}
+              className="w-full py-3 font-semibold text-base border-2 border-indigo-200 hover:border-indigo-300 bg-white text-indigo-700 hover:bg-indigo-50"
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              }
+            >
+              Analyze Match
+            </Button>
+            
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => router.push("/Myjobs")}
+              className="w-full py-3 font-semibold text-base"
+            >
+              Browse Other Jobs
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+
+    {/* Company Info Card */}
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+      <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+        <BuildingOfficeIcon className="w-4 h-4 text-blue-600" />
+        About the Company
+      </h3>
+      <div className="flex items-center space-x-3 mb-3">
+        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-lg">
+          {job.company_name?.charAt(0) || "C"}
+        </div>
+        <div>
+          <h4 className="font-semibold text-gray-900 text-sm">
+            {job.company_name}
+          </h4>
+          <p className="text-xs text-gray-600 flex items-center gap-1">
+            <MapPinIcon className="w-3 h-3" />
+            {job.location}
+          </p>
+        </div>
+      </div>
+      <Button
+        variant="secondary"
+        size="sm"
+        className="w-full"
+        onClick={() => router.push(`/companies/${job.company}`)}
+      >
+        View Company Profile
+      </Button>
+    </div>
+
+    {/* Job Details Card */}
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+      <h3 className="text-lg font-bold text-gray-900 mb-3">Job Details</h3>
+      <div className="space-y-3">
+        <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+          <span className="text-gray-600 flex items-center gap-1 text-sm">
+            <CalendarIcon className="w-3 h-3" />
+            Posted
+          </span>
+          <span className="font-semibold text-gray-900 text-sm">
+            {getTimeAgo(job.created_at)}
+          </span>
+        </div>
+        <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+          <span className="text-gray-600 text-sm">Employment Type</span>
+          <span className="font-semibold text-gray-900 text-sm">
+            {job.employment_type_display}
+          </span>
+        </div>
+        <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+          <span className="text-gray-600 text-sm">Work Type</span>
+          <span className="font-semibold text-gray-900 text-sm">{job.work_type_display}</span>
+        </div>
+        <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+          <span className="text-gray-600 text-sm">Experience Level</span>
+          <span className="font-semibold text-gray-900 text-sm">
+            {job.experience_level_display}
+          </span>
+        </div>
+        {job.closing_date && (
+          <div className="flex justify-between items-center py-1.5">
+            <span className="text-gray-600 text-sm">Closing Date</span>
+            <span className="font-semibold text-gray-900 text-sm">
+              {new Date(job.closing_date).toLocaleDateString()}
+            </span>
           </div>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
         </div>
 
         {/* Apply Modal */}

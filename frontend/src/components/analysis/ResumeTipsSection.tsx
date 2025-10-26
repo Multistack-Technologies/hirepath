@@ -1,12 +1,12 @@
-// components/analysis/ResumeTipsSection.tsx
 import Button from '@/components/Button';
 import { useState } from 'react';
 
 interface ResumeTipsSectionProps {
   onAddCertificates: () => void;
+  suggestedActions: string[];
 }
 
-export default function ResumeTipsSection({ onAddCertificates }: ResumeTipsSectionProps) {
+export default function ResumeTipsSection({ onAddCertificates, suggestedActions }: ResumeTipsSectionProps) {
   const [playingVideo, setPlayingVideo] = useState(false);
 
   const resumeTips = [
@@ -27,6 +27,26 @@ export default function ResumeTipsSection({ onAddCertificates }: ResumeTipsSecti
       <h2 className="text-xl font-semibold text-purple-700 mb-4">
         Resume Writing Tips & Ideas
       </h2>
+
+      {/* Suggested Actions */}
+      {suggestedActions && suggestedActions.length > 0 && (
+        <div className="mb-6">
+          <h3 className="font-medium text-indigo-700 mb-3 flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Recommended Actions
+          </h3>
+          <div className="space-y-2">
+            {suggestedActions.map((action, index) => (
+              <div key={index} className="flex items-start text-sm bg-indigo-50 p-3 rounded-lg">
+                <span className="text-indigo-600 mr-2 mt-0.5">•</span>
+                <span className="text-indigo-800">{action}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Video Section */}
       <div className="mb-6">

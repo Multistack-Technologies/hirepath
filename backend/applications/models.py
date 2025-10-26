@@ -1,9 +1,14 @@
-# backend/applications/models.py
 from django.db import models
 from django.conf import settings
 from jobs.models import Job
 from django.utils import timezone
+import logging
+from typing import Dict, Any
 
+# Import the Gemini AI engine
+from ai.services import ai_engine
+
+logger = logging.getLogger(__name__)
 User = settings.AUTH_USER_MODEL
 
 class Application(models.Model):
@@ -11,10 +16,10 @@ class Application(models.Model):
         PENDING = "PENDING", "Pending"
         REVIEWED = "REVIEWED", "Reviewed"
         SHORTLISTED = "SHORTLISTED", "Shortlisted"
-        INTERVIEW = "INTERVIEW", "Interview"  # Added interview stage
+        INTERVIEW = "INTERVIEW", "Interview"
         ACCEPTED = "ACCEPTED", "Accepted"
         REJECTED = "REJECTED", "Rejected"
-        WITHDRAWN = "WITHDRAWN", "Withdrawn"  # Added withdrawn status
+        WITHDRAWN = "WITHDRAWN", "Withdrawn"
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="applications")
     applicant = models.ForeignKey(User, on_delete=models.CASCADE, related_name="applications")
@@ -24,7 +29,11 @@ class Application(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     match_score = models.FloatField(null=True, blank=True)
     
-    # Additional fields for better tracking
+    # AI-enhanced fields
+    ai_analysis = models.JSONField(null=True, blank=True, help_text="Detailed AI analysis of the application")
+    ai_feedback = models.TextField(blank=True, null=True, help_text="AI-generated feedback for improvement")
+    
+    # Additional fields
     notes = models.TextField(blank=True, null=True, help_text="Recruiter notes about the application")
     interview_date = models.DateTimeField(blank=True, null=True)
 
@@ -38,206 +47,119 @@ class Application(models.Model):
     def save(self, *args, **kwargs):
         # Calculate match score when application is created or if score is None
         if not self.pk or self.match_score is None:
-            self.match_score = self.calculate_match_score()
+            self.match_score, self.ai_analysis, self.ai_feedback = self.calculate_ai_match_score()
         super().save(*args, **kwargs)
 
-    def calculate_match_score(self):
-        """
-        Enhanced match score calculation considering skills, education, and experience
-        """
+    def get_applicant_profile_data(self) -> Dict[str, Any]:
+        """Extract structured data from applicant profile for AI analysis"""
         try:
-            total_score = 0
-            criteria_count = 0
+            profile_data = {
+                "skills": list(self.applicant.skills.values_list('name', flat=True)),
+                "educations": [],
+                "experiences": [],
+                "certificates": [],
+            }
             
-            # 1. Skills Match (40% weight)
-            applicant_skills = set(self.applicant.skills.values_list('name', flat=True))
-            job_required_skills = set(self.job.skills_required.values_list('name', flat=True))
+            # Education data
+            for edu in self.applicant.educations.all():
+                profile_data["educations"].append({
+                    "degree": edu.degree.name if edu.degree else "",
+                    "institution": edu.institution,
+                    "field_of_study": edu.field_of_study,
+                    "graduation_year": edu.graduation_year
+                })
             
-            if job_required_skills:
-                skills_match = len(applicant_skills.intersection(job_required_skills)) / len(job_required_skills)
-                total_score += skills_match * 40
-                criteria_count += 1
+            # Work experience data (for context)
+            for exp in self.applicant.work_experiences.all():
+                profile_data["experiences"].append({
+                    "title": exp.title,
+                    "company": exp.company,
+                    "duration_months": exp.duration_months,
+                    "description": exp.description
+                })
             
-            # 2. Education Match (30% weight)
-            applicant_educations = self.applicant.educations.all()
-            preferred_courses = self.job.courses_preferred.all()
+            # Certificates
+            for cert in self.applicant.certificates.all():
+                profile_data["certificates"].append({
+                    "name": cert.name,
+                    "provider": cert.provider.name if cert.provider else "",
+                    "year_obtained": cert.year_obtained
+                })
             
-            if preferred_courses.exists():
-                education_match = self.calculate_education_match(applicant_educations, preferred_courses)
-                total_score += education_match * 30
-                criteria_count += 1
-            
-            # 3. Certificates Match (20% weight)
-            applicant_certificates = self.applicant.certificates.all()
-            preferred_certificates = self.job.certificates_preferred.all()
-            
-            if preferred_certificates.exists():
-                cert_match = self.calculate_certificate_match(applicant_certificates, preferred_certificates)
-                total_score += cert_match * 20
-                criteria_count += 1
-            
-            # 4. Experience Level (10% weight)
-            experience_match = self.calculate_experience_match()
-            total_score += experience_match * 10
-            criteria_count += 1
-            
-            # Normalize score if not all criteria were applicable
-            if criteria_count > 0:
-                final_score = total_score / criteria_count
-                return round(final_score, 2)
-            
-            return 0.00
+            return profile_data
             
         except Exception as e:
-            print(f"Error calculating match score for application {self.id}: {e}")
-            return 0.00
+            logger.error(f"Error extracting applicant profile data: {e}")
+            return {}
 
-    def calculate_education_match(self, applicant_educations, preferred_courses):
-        """Calculate education match based on degrees and fields of study"""
-        if not applicant_educations.exists():
-            return 0
-        
-        applicant_degrees = set(edu.degree.name for edu in applicant_educations if edu.degree)
-        preferred_degree_names = set(course.name for course in preferred_courses)
-        
-        if not preferred_degree_names:
-            return 0
-            
-        match_count = len(applicant_degrees.intersection(preferred_degree_names))
-        return match_count / len(preferred_degree_names)
-
-    def calculate_certificate_match(self, applicant_certs, preferred_certs):
-        """Calculate certificate match"""
-        if not applicant_certs.exists():
-            return 0
-            
-        applicant_cert_names = set(cert.provider.name for cert in applicant_certs if cert.provider)
-        preferred_cert_names = set(cert.name for cert in preferred_certs)
-        
-        if not preferred_cert_names:
-            return 0
-            
-        match_count = len(applicant_cert_names.intersection(preferred_cert_names))
-        return match_count / len(preferred_cert_names)
-
-    def calculate_experience_match(self):
-        """Calculate experience level match"""
+    def get_job_requirements_data(self) -> Dict[str, Any]:
+        """Extract structured data from job requirements"""
         try:
-            experience_mapping = {
-                'ENTRY': 1,
-                'MID': 2, 
-                'SENIOR': 3,
-                'LEAD': 4
+            job_data = {
+                "title": self.job.title,
+                "description": self.job.description,
+                "requirements": self.job.requirements,
+                "skills_required": list(self.job.skills_required.values_list('name', flat=True)),
+                "experience_level": self.job.experience_level,
+                "courses_preferred": list(self.job.courses_preferred.values_list('name', flat=True)),
+                "certificates_preferred": list(self.job.certificates_preferred.values_list('name', flat=True)),
+                "location": self.job.location,
+                "job_type": self.job.job_type
             }
-            
-            job_experience = experience_mapping.get(self.job.experience_level, 1)
-            
-            # Simple experience calculation based on work experience duration
-            user_experience = self.applicant.work_experiences.aggregate(
-                total_months=models.Sum('duration_months')
-            )['total_months'] or 0
-            
-            user_experience_years = user_experience / 12
-            
-            # Map years to experience levels
-            if user_experience_years >= 5:
-                user_level = 3  # Senior
-            elif user_experience_years >= 2:
-                user_level = 2  # Mid
-            else:
-                user_level = 1  # Entry
-                
-            return min(user_level / job_experience, 1.0)
-        except Exception:
-            return 0.0
+            return job_data
+        except Exception as e:
+            logger.error(f"Error extracting job requirements data: {e}")
+            return {}
 
-    def calculate_match_details(self):
-        """Enhanced match details with comprehensive analysis"""
+    def calculate_ai_match_score(self):
+        """
+        Use Gemini AI engine to calculate match score
+        Returns: (match_score, analysis, feedback)
+        """
         try:
-            details = {
-                "skills_matched": [],
-                "skills_missing": [],
-                "education_match": {},
-                "certificate_match": {},
-                "experience_match": {},
-                "feedback": []
-            }
+            applicant_data = self.get_applicant_profile_data()
+            job_data = self.get_job_requirements_data()
             
-            # Skills analysis
-            applicant_skills = set(self.applicant.skills.values_list('name', flat=True))
-            job_required_skills = set(self.job.skills_required.values_list('name', flat=True))
+            if not applicant_data or not job_data:
+                return 0.0, {}, "Insufficient data for analysis"
             
-            details["skills_matched"] = list(applicant_skills.intersection(job_required_skills))
-            details["skills_missing"] = list(job_required_skills.difference(applicant_skills))
+            # Use the Gemini AI engine service
+            result = ai_engine.analyze_application_match(
+                applicant_data=applicant_data,
+                job_data=job_data,
+                cover_letter=self.cover_letter or ""
+            )
             
-            # Education analysis
-            applicant_educations = self.applicant.educations.all()
-            preferred_courses = self.job.courses_preferred.all()
-            
-            if preferred_courses.exists():
-                details["education_match"] = {
-                    "has_required_education": any(
-                        edu.degree in preferred_courses for edu in applicant_educations if edu.degree
-                    ),
-                    "preferred_courses": [course.name for course in preferred_courses]
-                }
-            
-            # Certificate analysis
-            applicant_certificates = self.applicant.certificates.all()
-            preferred_certificates = self.job.certificates_preferred.all()
-            
-            if preferred_certificates.exists():
-                matched_certs = [
-                    cert for cert in applicant_certificates 
-                    if cert.provider and cert.provider in preferred_certificates
-                ]
-                details["certificate_match"] = {
-                    "matched_certificates": [cert.provider.name for cert in matched_certs if cert.provider],
-                    "missing_certificates": [cert.name for cert in preferred_certificates]
-                }
-            
-            # Generate feedback
-            self.generate_feedback(details)
-            
-            return details
+            return (
+                result.get("match_score", 0.0),
+                result.get("analysis", {}),
+                result.get("feedback", "")
+            )
             
         except Exception as e:
-            print(f"Error calculating match details for application {self.id}: {e}")
-            return {
-                "skills_matched": [],
-                "skills_missing": [],
-                "education_match": {},
-                "certificate_match": {},
-                "experience_match": {},
-                "feedback": [f"Error generating match details: {str(e)}"]
-            }
+            logger.error(f"Gemini AI analysis failed: {e}")
+            return 0.0, {}, f"Analysis error: {str(e)}"
 
-    def generate_feedback(self, details):
-        """Generate actionable feedback based on match analysis"""
-        feedback = []
+    def refresh_ai_analysis(self):
+        """Force refresh of AI analysis"""
+        self.match_score, self.ai_analysis, self.ai_feedback = self.calculate_ai_match_score()
+        self.save()
+
+    def get_ai_enhanced_feedback(self) -> str:
+        """Get AI-generated feedback for the application"""
+        if self.ai_feedback:
+            return self.ai_feedback
         
-        # Skills feedback
-        total_skills = len(details["skills_matched"]) + len(details["skills_missing"])
-        if total_skills > 0:
-            skills_match_ratio = len(details["skills_matched"]) / total_skills
-            
-            if skills_match_ratio >= 0.8:
-                feedback.append("🎯 Excellent skills match! Your technical skills align perfectly with the job requirements.")
-            elif skills_match_ratio >= 0.6:
-                feedback.append("✅ Good skills alignment. Consider highlighting your experience with the matched skills.")
-            else:
-                feedback.append("💡 Consider developing skills in: " + ", ".join(details["skills_missing"][:3]))
-        
-        # Education feedback
-        if details["education_match"].get("has_required_education"):
-            feedback.append("📚 Your educational background matches the preferred qualifications.")
-        elif details["education_match"].get("preferred_courses"):
-            feedback.append("🎓 While you have strong education, the role prefers: " + ", ".join(details["education_match"]["preferred_courses"][:2]))
-        
-        # Certificate feedback
-        if details["certificate_match"].get("matched_certificates"):
-            feedback.append("🏆 Great job on obtaining relevant certifications!")
-        elif details["certificate_match"].get("missing_certificates"):
-            feedback.append("📜 Consider pursuing certifications in: " + ", ".join(details["certificate_match"]["missing_certificates"][:2]))
-        
-        details["feedback"] = feedback
+        # Regenerate if not available
+        self.refresh_ai_analysis()
+        return self.ai_feedback
+
+    @property
+    def is_highly_matched(self) -> bool:
+        """Check if this is a highly matched application"""
+        return self.match_score and self.match_score >= 80
+
+    @property
+    def needs_improvement(self) -> bool:
+        """Check if application needs improvement"""
+        return self.match_score and self.match_score < 60

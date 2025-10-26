@@ -13,6 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY') 
 DEBUG =  config('DEBUG', default=False, cast=bool)
+GENAI_API_KEY = config("GENAI_API_KEY")
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
@@ -177,4 +178,11 @@ LOGGING = {
         'handlers': ['file'],
         'level': 'INFO', # Adjust level as needed
     },
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
 }

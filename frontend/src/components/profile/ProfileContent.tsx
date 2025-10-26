@@ -72,7 +72,7 @@ export default function ProfileContent() {
     }
 
     try {
-      const resumeResponse = await api.get("/resumes/analysis");
+      const resumeResponse = await api.get("/resumes/latest");
       if (resumeResponse.data?.score) {
         data.resume_score = resumeResponse.data.score;
       }
@@ -105,7 +105,7 @@ export default function ProfileContent() {
 
   const handleUploadSuccess = (feedbackData: any) => {
     closeUploadModal();
-     router.push("/analysis");
+     router.push("profile/analysis");
     if (profileData && feedbackData.score) {
       setProfileData({
         ...profileData,
