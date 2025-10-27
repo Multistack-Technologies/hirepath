@@ -410,7 +410,7 @@ export default function CandidatesList() {
                 <option value="REVIEWED">Reviewed</option>
                 <option value="SHORTLISTED">Shortlisted</option>
                 <option value="REJECTED">Rejected</option>
-                <option value="HIRED">Hired</option>
+                <option value="ACCEPTED">Hired</option>
               </select>
             </div>
 

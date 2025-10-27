@@ -2,12 +2,11 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from django.conf import settings
-from dotenv import load_dotenv
 from decouple import config
 from pathlib import Path
 
 
-load_dotenv()  # loads backend/.env
+  # loads backend/.env
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

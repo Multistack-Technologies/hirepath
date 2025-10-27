@@ -18,7 +18,7 @@ class Application(models.Model):
         REVIEWED = "REVIEWED", "Reviewed"
         SHORTLISTED = "SHORTLISTED", "Shortlisted"
         INTERVIEW = "INTERVIEW", "Interview"
-        ACCEPTED = "ACCEPTED", "Accepted"
+        ACCEPTED = "HIRED", "Hired"
         REJECTED = "REJECTED", "Rejected"
         WITHDRAWN = "WITHDRAWN", "Withdrawn"
 
