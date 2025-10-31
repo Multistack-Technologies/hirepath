@@ -40,7 +40,7 @@ export const ReportGenerationForm: React.FC<ReportGenerationFormProps> = ({
           <select
             value={formData.report_type}
             onChange={(e) => handleChange('report_type', e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#130160] focus:border-[#130160]"
+            className="w-full border text-gray-700 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#130160] focus:border-[#130160]"
             required
           >
             {REPORT_TYPES.map(type => (
@@ -86,7 +86,7 @@ export const ReportGenerationForm: React.FC<ReportGenerationFormProps> = ({
           value={formData.description}
           onChange={(e) => handleChange('description', e.target.value)}
           rows={3}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#130160] focus:border-[#130160]"
+          className="w-full border text-gray-700 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#130160] focus:border-[#130160]"
         />
       </div>
 

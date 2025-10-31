@@ -714,7 +714,7 @@ export default function JobAnalysisPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Job Details
                 </h3>
-                <div className="space-y-3 text-sm">
+                <div className="space-y-3 text-sm text-gray-600">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Experience Level:</span>
                     <span className="font-medium">
