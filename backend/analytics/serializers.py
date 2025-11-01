@@ -13,7 +13,7 @@ class RecruitmentReportSerializer(serializers.ModelSerializer):
             'id', 'title', 'report_type', 'description', 'recruiter', 'recruiter_name',
             'date_range_start', 'date_range_end', 'filters_applied', 'report_data',
             'export_format', 'exported_file', 'file_url', 'is_exported',
-            'generated_at', 'last_accessed'
+            'generated_at', 'last_accessed', 'report_period'  # ADDED 'report_period'
         ]
         read_only_fields = ['id', 'recruiter', 'generated_at', 'last_accessed']
     
@@ -65,13 +65,8 @@ class ReportGenerateSerializer(serializers.Serializer):
         return data
 
 class ExportRequestSerializer(serializers.Serializer):
-    export_type = serializers.ChoiceField(choices=[
-        ('APPLICATIONS', 'Applications'),
-        ('CANDIDATES', 'Candidates'),
-        ('JOBS', 'Jobs'),
-        ('ANALYTICS', 'Analytics')
-    ])
-    format = serializers.ChoiceField(choices=RecruitmentReport.EXPORT_FORMATS)
+    export_type = serializers.ChoiceField(choices=AnalyticsExport.EXPORT_TYPES)
+    format = serializers.ChoiceField(choices=AnalyticsExport.FORMAT_CHOICES)
     filters = serializers.JSONField(required=False, default=dict)
     date_range_start = serializers.DateField(required=False)
     date_range_end = serializers.DateField(required=False)

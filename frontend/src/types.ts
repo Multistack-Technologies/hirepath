@@ -309,6 +309,8 @@ export interface SelectableItem {
 
 // types/analytics.ts
 export interface Report {
+  export_format: string;
+  is_exported: any;
   id: number;
   title: string;
   report_type: string;

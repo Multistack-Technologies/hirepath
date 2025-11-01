@@ -19,6 +19,11 @@ class AnalyticsService {
     return response.data;
   }
 
+  async exportReport(reportId: number, format: string): Promise<ApiResponse<{ file_url?: string }>> {
+    const response = await api.post(`/analytics/reports/${reportId}/export/`, { format });
+    return response.data;
+  }
+
   // Exports API
   async getExports(): Promise<Export[]> {
     const response = await api.get('/analytics/exports/');
@@ -30,11 +35,26 @@ class AnalyticsService {
     return response.data;
   }
 
-  async downloadExport(exportId: number): Promise<Blob> {
+  async downloadExport(exportId: number): Promise<{ blob: Blob; filename: string }> {
     const response = await api.get(`/analytics/exports/${exportId}/download/`, {
       responseType: 'blob',
     });
-    return response.data;
+    
+    // Extract filename from content-disposition header
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `export-${exportId}`;
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    }
+    
+    return {
+      blob: response.data,
+      filename: filename
+    };
   }
 
   // Dashboard Analytics
@@ -48,8 +68,6 @@ class AnalyticsService {
     const response = await api.get(`/analytics/analytics/${reportType}/?${queryParams}`);
     return response.data;
   }
-
- 
 
   // Helper method to get user-friendly error messages
   getErrorMessage(error: any): string {

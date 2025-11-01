@@ -17,6 +17,7 @@ interface UseAnalyticsReturn {
   loading: boolean;
   error: string | null;
   success: string | null;
+  selectedReport: Report | null;
 
   // Actions
   fetchReports: () => Promise<void>;
@@ -25,6 +26,11 @@ interface UseAnalyticsReturn {
   requestExport: (data: ExportRequestData) => Promise<void>;
   downloadExport: (exportId: number) => Promise<void>;
   fetchDashboardData: (days?: number) => Promise<void>;
+  exportReport: (reportId: number, format: string) => Promise<void>; // NEW
+  
+  // Report Details Actions
+  viewReportDetails: (report: Report) => void;
+  closeReportDetails: () => void;
 
   // Utilities
   clearError: () => void;
@@ -40,6 +46,7 @@ export const useAnalytics = (): UseAnalyticsReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   // Error and success management
   const setErrorWithTimeout = useCallback((message: string) => {
@@ -68,6 +75,7 @@ export const useAnalytics = (): UseAnalyticsReturn => {
     },
     [setErrorWithTimeout]
   );
+
   // Reports
   const fetchReports = useCallback(async () => {
     try {
@@ -99,6 +107,33 @@ export const useAnalytics = (): UseAnalyticsReturn => {
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Failed to generate report";
+        setErrorWithTimeout(errorMessage);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchReports, setErrorWithTimeout, setSuccessWithTimeout]
+  );
+
+  // NEW: Export report function
+  const exportReport = useCallback(
+    async (reportId: number, format: string) => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const result = await analyticsService.exportReport(reportId, format);
+
+        if (result.success) {
+          setSuccessWithTimeout(result.message || `Report exported successfully as ${format}!`);
+          await fetchReports(); // Refresh reports to update export status
+        } else {
+          throw new Error(result.error || "Failed to export report");
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to export report";
         setErrorWithTimeout(errorMessage);
         throw err;
       } finally {
@@ -145,29 +180,41 @@ export const useAnalytics = (): UseAnalyticsReturn => {
     [fetchExports, setErrorWithTimeout, setSuccessWithTimeout]
   );
 
-  const downloadExport = useCallback(
-    async (exportId: number) => {
-      try {
-        const blob = await analyticsService.downloadExport(exportId);
+// hooks/useAnalytics.ts - Fixed downloadExport function
+const downloadExport = useCallback(
+  async (exportId: number) => {
+    try {
+      const { blob, filename } = await analyticsService.downloadExport(exportId);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      setSuccessWithTimeout('Export downloaded successfully!');
+    } catch (err) {
+      setErrorWithTimeout("Failed to download export");
+      console.error("Error downloading export:", err);
+      throw err;
+    }
+  },
+  [setErrorWithTimeout, setSuccessWithTimeout]
+);
 
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `export-${exportId}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } catch (err) {
-        setErrorWithTimeout("Failed to download export");
-        console.error("Error downloading export:", err);
-        throw err;
-      }
-    },
-    [setErrorWithTimeout]
-  );
+  // Report Details Actions
+  const viewReportDetails = useCallback((report: Report) => {
+    setSelectedReport(report);
+  }, []);
+
+  const closeReportDetails = useCallback(() => {
+    setSelectedReport(null);
+  }, []);
 
   return {
     // State
@@ -177,6 +224,7 @@ export const useAnalytics = (): UseAnalyticsReturn => {
     loading,
     error,
     success,
+    selectedReport,
 
     // Actions
     fetchReports,
@@ -185,6 +233,11 @@ export const useAnalytics = (): UseAnalyticsReturn => {
     requestExport,
     downloadExport,
     fetchDashboardData,
+    exportReport, // NEW
+
+    // Report Details Actions
+    viewReportDetails,
+    closeReportDetails,
 
     // Utilities
     clearError: () => setError(null),

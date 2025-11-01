@@ -6,15 +6,21 @@ interface ReportsListProps {
   reports: Report[];
   loading: boolean;
   onDownloadReport: (report: Report) => void;
+  onViewDetails: (report: Report) => void; // NEW PROP
 }
 
 export const ReportsList: React.FC<ReportsListProps> = ({
   reports,
   loading,
   onDownloadReport,
+  onViewDetails, // NEW PROP
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const formatReportType = (reportType: string) => {
+    return reportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   if (loading) {
@@ -44,7 +50,7 @@ export const ReportsList: React.FC<ReportsListProps> = ({
               
               <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-500">
                 <div>
-                  <span className="font-medium">Type:</span> {report.report_type.replace('_', ' ')}
+                  <span className="font-medium">Type:</span> {formatReportType(report.report_type)}
                 </div>
                 <div>
                   <span className="font-medium">Period:</span> {formatDate(report.date_range_start)} - {formatDate(report.date_range_end)}
@@ -56,9 +62,16 @@ export const ReportsList: React.FC<ReportsListProps> = ({
             </div>
             
             <div className="flex space-x-2 ml-4">
+              <Button
+                variant="tertiary"
+                size="sm"
+                onClick={() => onViewDetails(report)}
+              >
+                View Details
+              </Button>
               {report.file_url && (
                 <Button
-                  variant="tertiary"
+                  variant="primary"
                   size="sm"
                   onClick={() => onDownloadReport(report)}
                 >

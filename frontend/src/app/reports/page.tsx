@@ -11,6 +11,7 @@ import { ExportSection } from '@/components/analytics/ExportSection';
 import { QuickStats } from '@/components/analytics/QuickStats';
 import { OverviewMetrics } from '@/components/analytics/OverviewMetrics';
 import { TopPerformingJobs } from '@/components/analytics/TopPerformingJobs';
+import { ReportDetails } from '@/components/analytics/ReportDetails';
 
 export default function ReportsPage() {
   const {
@@ -20,12 +21,16 @@ export default function ReportsPage() {
     loading,
     error,
     success,
+    selectedReport,
     fetchReports,
     generateReport,
     fetchExports,
     requestExport,
     downloadExport,
     fetchDashboardData,
+    exportReport, // NEW
+    viewReportDetails,
+    closeReportDetails,
     clearError,
     clearSuccess,
   } = useAnalytics();
@@ -42,6 +47,14 @@ export default function ReportsPage() {
     if (report.file_url) {
       window.open(report.file_url, '_blank');
     }
+  };
+
+  const handleViewDetails = (report: any) => {
+    viewReportDetails(report);
+  };
+
+  const handleExportReport = async (reportId: number, format: string) => {
+    await exportReport(reportId, format);
   };
 
   return (
@@ -110,7 +123,7 @@ export default function ReportsPage() {
             />
           </div>
 
-          {/* Applications Trend - Placeholder for future chart */}
+          {/* Applications Trend */}
           <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Applications Trend</h3>
             {dashboardData?.applications_trend && dashboardData.applications_trend.length > 0 ? (
@@ -139,6 +152,7 @@ export default function ReportsPage() {
             reports={reports}
             loading={loading}
             onDownloadReport={handleDownloadReport}
+            onViewDetails={handleViewDetails}
           />
         </section>
 
@@ -152,6 +166,16 @@ export default function ReportsPage() {
             onDownloadExport={downloadExport}
           />
         </section>
+
+        {/* Report Details Modal */}
+        {selectedReport && (
+          <ReportDetails
+            report={selectedReport}
+            onClose={closeReportDetails}
+            onDownload={handleDownloadReport}
+            onExportReport={handleExportReport}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
